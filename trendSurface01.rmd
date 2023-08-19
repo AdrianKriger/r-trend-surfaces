@@ -1,0 +1,362 @@
+---
+title: "Trend Surface Analysis with R (part I)"
+output: html_notebook
+---
+
+This Notebook (the first-of-four) serves to introduce a user to a series of exercises focused on higher order Trend Surface analysis with R.
+
+It consists of two sections:
+
+1. Explore the dataset
+2. Deterministic Interpolation Techniques
+	a) Voronoi
+	b) Inverse Distance Weighting
+
+$\color{red}{\text{\textbf{REQUIRED}}}$: 
+You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:
+
+- Plots and other outputs from executing the code chunks
+- Discussion of your plots and other outputs as well as conclusions reached.
+- This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
+
+```{r install }
+options(prompt="> ", continue="+ ", digits=3, width=70, show.signif.stars=F, repr.plot.width=8, repr.plot.height=8)
+rm(list=ls())
+
+# Install necessary packages: You only need to run this part once
+install.packages(c("sf", "gstat", "stars"))
+
+library(sf)    # 'simple features' representations of spatial objects
+library(gstat) # geostatistics
+library(stars) # gridded data structures ("rasters")
+```
+## 1. Explore the dataset
+
+```{r read-dataset }
+#-- read
+file = 'cptFlatsAquifer_watertable4.txt'
+```
+
+```{r import }
+#-- import
+cfaq <- read.csv(file, header = 1, sep = ',', dec = '.')
+```
+
+```{r look }
+#-- look
+head(cfaq ,3)
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- What is the purpose of producing a map of the the elevation of the top of the aquifer over the study area? In other words, who would use the map and for what purpose?
+
+```{ r ans-01}
+[click in this cell and type your answer here]
+```
+
+```{r str-cfaq }
+str(cfaq)
+```
+
+```{r crs-and-look }
+#- set as a spatial feature with xy coords an existing projection
+cfaq.sf <- st_as_sf(cfaq, coords=c("long", "lat"), crs = 4326) #wgs84
+#str(cfaq)
+st_crs(cfaq.sf)
+```
+
+```{r transform-crs }
+#- transform to local crs
+cfaq.sf <- st_transform(cfaq.sf, crs = 32734) #utm 34s
+cfaq.sf$X <- st_coordinates(cfaq.sf)[, "X"]
+cfaq.sf$Y <- st_coordinates(cfaq.sf)[, "Y"]
+```
+
+```{r str-sf }
+str(st_coordinates(cfaq.sf))
+```
+
+```{r summarize-coords }
+#- summarize the coordinates
+summary(st_coordinates(cfaq.sf), digits = 3)
+```
+
+```{r dim }
+dim(cfaq.sf)
+```
+
+```{r summarize-cfaq }
+#- summarize the data
+summary(cfaq.sf)
+```
+
+```{r bbox-cfaq-sf) }
+#- bounding box
+st_bbox(cfaq.sf)
+```
+
+```{r range-cfaq-sf }
+#- a couple of range measurments
+range(cfaq.sf$waterLevel); diff(range(cfaq.sf$waterLevel))
+range(cfaq.sf$elevation); diff(range(cfaq.sf$elevation))
+range(cfaq.sf$depth); diff(range(cfaq.sf$depth))
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+
+- How many observations are there? What was recorded at each point?
+
+```{ r ans-02}
+[click in this cell and type your answer here]
+```
+
+- What are the geographic limits of the study area? What is its area, in km2?
+
+```{ r ans-03}
+[click in this cell and type your answer here]
+```
+```{r plot-names }
+plot(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
+     #plot(st_coordinates(cfaq.sf)[,1] ~ st_coordinates(cfaq.sf)[,2],
+     pch=20, cex=0.4, col="blue", asp=1,
+     xlab="Lo 19 E", ylab="Lo 19 N")
+grid()
+text(st_coordinates(cfaq.sf)[,1], st_coordinates(cfaq.sf)[,2],
+     #st_coordinates(cfaq.sf)[,2], st_coordinates(cfaq.sf)[,1],
+     #round(cfaq$waterLevel), adj=c(0.5,0.5))
+     cfaq$name, adj=c(0.5,0.5))
+#text(cfaqN, round(aq$z), adj=c(0.5,0.5))
+title("Elevation of aquifer, m")
+```
+```{r plot-elevation }
+plot(#st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
+  st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
+  cex=0.8*cfaq$water_level/max(cfaq$waterLevel),
+  col="blue", bg="red", pch=21, asp=1,
+  xlab="Lo19 E", ylab="Lo19 N")
+grid()
+title("Elevation of aquifer, m")
+```
+
+```{r plot-elevation-viridis }
+plot(#st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
+  st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
+  pch=21,
+  xlab="UTM19_E", ylab="UTM19_N",
+  bg=sp::bpy.colors(length(cfaq$waterLevel))[rank(cfaq$waterLevel)],
+  cex=0.9)#*cfaq$waterLevel/max(cfaq$waterLevel), asp=1)
+grid()
+title("Elevation of aquifer, m")
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+
+- Describe the spatial pattern of the elevations. Do nearby points have similar values? Is there a trend across the whole area? Are there local exceptions to the trend?
+
+```{ r ans-02}
+[click in this cell and type your answer here]
+```
+
+## 2. Deterministic Interpolation Techniques
+
+Before we delve into higher order interpolation techniques; let us first explore two extremly useful methods we can use to model a continuous variable (like an elevation surface or meterological observations).
+
+a) Thiessen Polygons
+b) Inverse Distance Weighting (IDW)
+
+$\color{red}{\text{\textbf{REMEMBER:}}}$: our goal is to estimate values where non exist. And depending on the application (and the data we have access to) higher order methods might not be necessary!
+
+### a) Thiessen Polygons
+
+The oldest method is simply to divide the area of interest based on proximity to sample points. The result is a tesselated surface of Thiessen polygons (also called a Voronoi Diagram)
+
+```{r voronoi }
+# Voronoi tesselation
+pnts <- st_union(cfaq.sf)
+voronoi_grid <- st_voronoi(pnts)
+```
+
+```{r plot-voronoi }
+#-- plot
+plot(voronoi_grid, col = NA)
+points(st_coordinates(cfaq.sf)[,1], st_coordinates(cfaq.sf)[,2],
+       pch=21,
+       bg=sp::bpy.colors(length(cfaq$waterLevel))[rank(cfaq$waterLevel)],
+       cex=0.4*cfaq$waterLevel/max(cfaq$waterLevel))
+grid()
+title("Elevation of aquifer, m.a.s.l.")
+```
+
+### b) Inverse Distance Weighting (IDW)
+
+An extremely popular interpolation method calculates an average value for estimated locations using values from nearby weighted locations.
+
+```{r range-cfaq-coords }
+range(st_coordinates(cfaq.sf)[,2]); range(st_coordinates(cfaq.sf)[,1])
+```
+
+Create a 500-m grid
+
+```{r create-grid }
+#- create grid
+cfaq.bb <- st_bbox(cfaq.sf)
+cfaq.bb[c("xmin","ymin")] <-   floor(cfaq.bb[c("xmin","ymin")]/1000)*1000
+cfaq.bb[c("xmax","ymax")] <- ceiling(cfaq.bb[c("xmax","ymax")]/1000)*1000
+
+#-- as a stars object
+grid <- st_as_stars(cfaq.bb, dx = 500)
+grid
+```
+
+```{r dim-grid }
+dim(grid)
+```
+
+```{r summarize-grid }
+summary(grid)
+```
+
+```{r bbox(-grid }
+st_bbox(grid)
+```
+
+```{r plot-grid }
+plot(grid); grid()
+```
+
+**IDW interpolation with power at 0.5, 1, 2.5 and 10** and plot the result
+
+```{r idw-power }
+#- idw
+idw_results <- list()
+idp_values <- c(0.5, 1, 2.5, 10)
+```
+
+```{r idw-loop}
+#- idw
+for (idp in idp_values) {
+  idw_result <- idw(log(waterLevel) ~ 1, cfaq.sf, grid, idp = idp)
+  #idw <- gridkm
+  #idw <- idw_result
+  idw_results[[as.character(idp)]] <- idw_result
+}
+```
+
+```{r plot-idw }
+# Plot IDW results with overlay of original points
+num_plots <- length(idp_values)
+par(mfrow = c(2, 2))  # Arrange plots in 2 rows and 2 columns
+# Set the size of the individual plots
+plot_width <- 9
+plot_height <- 9
+
+# Set the margin and space between plots
+margin_size <- 0.5
+space_between_plots <- 0.3
+
+# Calculate the total plot area
+total_width <- plot_width * 2 + space_between_plots
+total_height <- plot_height * 2 + space_between_plots
+
+# Set par settings for plot layout
+par(mfrow = c(2, 2), mar = c(0.6, 0.6, 0.8, 0.1),#margin_size, margin_size, margin_size, margin_size),
+    oma = c(0, 0, 0, 0), mgp = c(0.5, 0.7, 0))
+
+min.x <- floor(min(cfaq.sf$X)/1000)*1000
+max.x <- ceiling(max(cfaq.sf$X)/1000)*1000
+
+min.y <- floor(min(cfaq.sf$Y)/1000)*1000
+max.y <- ceiling(max(cfaq.sf$Y)/1000)*1000
+
+for (i in 1:num_plots) {
+  idp <- idp_values[i]
+  idw_result <- idw_results[[as.character(idp)]]
+  title <- paste("IDW @ (IDP =", idp, ")", sep = " ")
+
+  # Plot interpolated surface
+  image(idw_result, main = title, col = rainbow(100),
+        xlim = c(min.x, max.x), ylim = c(min.y, max.y),
+        xlab = "", ylab = "")
+
+  # Overlay original points
+  points(cfaq.sf$X, cfaq.sf$Y, pch = 21,
+         bg = adjustcolor("black", alpha.f = 0.2),
+         col = "black",
+         cex = 0.9, lwd = 0.5)
+
+  contour(idw_result, add = TRUE, nlevels = 10, col = "black")
+}
+
+# Reset layout to default
+par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+
+- Why do we need interpolation methods that go deeper / further than the two presented here?
+
+```{ r ans-03}
+[click in this cell and type your answer here]
+```
+
+- Comment on the quality of the IDW
+$\color{blue}{\text{\textbf{Hint}}}$: Think about the subjectivity of the power function and what this means. Also consider what happens when we overlay the voronoi with the various idw interpolations. What does this mean?
+
+```{r plot-idw-voronoi }
+# Plot IDW results with overlay of original points
+num_plots <- length(idp_values)
+par(mfrow = c(2, 2))  # Arrange plots in 2 rows and 2 columns
+# Set the size of the individual plots
+plot_width <- 9
+plot_height <- 9
+
+# Set the margin and space between plots
+margin_size <- 0.5
+space_between_plots <- 0.3
+
+# Calculate the total plot area
+total_width <- plot_width * 2 + space_between_plots
+total_height <- plot_height * 2 + space_between_plots
+
+# Set par settings for plot layout
+par(mfrow = c(2, 2), mar = c(0.6, 0.6, 0.8, 0.1),#margin_size, margin_size, margin_size, margin_size),
+    oma = c(0, 0, 0, 0), mgp = c(0.5, 0.7, 0))
+
+for (i in 1:num_plots) {
+  idp <- idp_values[i]
+  idw_result <- idw_results[[as.character(idp)]]
+  title <- paste("IDW @ (IDP =", idp, ")", sep = " ")
+
+  # Plot interpolated surface
+  image(idw_result, main = title, col = rainbow(100),
+        xlim = c(min.x, max.x), ylim = c(min.y, max.y),
+        xlab = "", ylab = "")
+
+  # Overlay Voronoi polygons
+  plot(voronoi_grid, add = TRUE, border = "black", col = NA, type="l", lty=2) #lwd = 1,
+
+  # Overlay original points
+  points(cfaq.sf$X, cfaq.sf$Y, pch = 21,
+         bg = adjustcolor("black", alpha.f = 0.2),
+         col = "black",
+         cex = 0.9, lwd = 0.5)
+}
+
+# Reset layout to default
+par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
+```
+
+```{ r ans-04}
+[click in this cell and type your answer here]
+```
+- How can the quality of the IDW improve?
+
+```{ r ans-05}
+[click in this cell and type your answer here]
+```
+- How can the quality of the IDW improve?
+$\color{blue}{\text{\textbf{Hint}}}$: Consider the location and density of the sample (input) points
+
+```{ r ans-05}
+[click in this cell and type your answer here]
+```
