@@ -322,3 +322,211 @@ Kriging is a form of linear prediction of a value at an unknown point as a weigh
 This makes sense. We know the structure (spatial correlation) of the residuals, their values and their location. And we use this knowledge to refine our GLS prediction.  
 
 But what really makes Kriging special _(and computationally expensive)_ is the system ensures that each prediction has the least possible prediction variance. The _**uncertainty**_ of the predictions are minimized.
+
+```{r ok}
+#-- ok
+grid.sf <- st_as_sf(grid.df, coords = c("X", "Y"))
+st_crs(grid.sf) <- st_crs(grid)
+kr <- krige(res.ts2.gls ~ 1,
+            loc = cfaq.sf,
+            newdata = grid.sf,
+            model=vr.gls.m.f)
+```
+
+```{r ok-summary }
+#- summary
+summary(kr)
+```
+
+```{r ok-class }
+class(kr)
+```
+
+```{r ok-residuals }
+#- ok residuals
+plot(kr["var1.pred"], pch=15, nbreaks=24, main="Residuals from GLS trend, m")
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Which areas were most changed by interpolating the residuals? Why?
+
+```{ r ans-08}
+[click in this cell and type your answer here]
+```
+
+```{r ok-std-dev-summary }
+#- prediction standard deviations and plot
+kr$var1.sd <- sqrt(kr$var1.var)
+summary(kr)
+```
+
+```{r plot-ok-std-dev-residuals }
+#-
+plot(kr["var1.sd"], pch=15, nbreaks=24, pal = heat.colors,
+     main="Standard errors of residuals from GLS trend, m")
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Which areas have the most and least uncertainty? Why?
+
+```{ r ans-09}
+[click in this cell and type your answer here]
+```
+
+## 2. Regression Kriging
+
+We now have the ingredients to predict a very good trend surface. The global function and the local deviations from it.
+
+$$
+    Z(s) = Z*(s) + ϵ(s) + ϵ'(s)
+$$
+
+We modeled a trend surface, $Z*(s) + ϵ(s)$, with an OLS polynomial and later derived a model for the trend's spatial structure, $ϵ(s) + ϵ'(s)$, by Ordinary Kriging. These were modeled together with GLS.
+
+**We now add the OK prediction of the GLS residuals to the GLS surface. This is called Generalized Least Squares Trend-Regression Kriging (GLS-RK)**
+
+```{r gls-rk-summary }
+#-- gls-regression kriging
+grid.df$kr <- kr$var1.pred
+grid.df$pred.ts2.gls <- pred.ts2.gls
+grid.df$rkgls <- grid.df$pred.ts2.gls + grid.df$kr
+summary(grid.df)
+```
+
+```{r gls-rk-to-grid }
+grid.rkgls <- grid
+values(grid.rkgls) <- grid.df$rkgls
+```
+
+```{r plot gls-rk }
+#- plot
+plot(grid.rkgls, col = rainbow(100),
+     main="GLS-RK prediction, aquifer elevation, m.a.s.l.")
+```
+
+Compare the GLS-RK with the GAM
+
+```{r diff-gls-rk-minus-gam }
+summary(grid.rkgls.gam <- (grid.rkgls - grid.gam))
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- $\color{red}{\text{\textbf{QUESTION}}}$: 
+- Where are the largest differences between these two trend surface predictions? Explain why, considering how the two surfaces are computed
+
+```{ r ans-10}
+[click in this cell and type your answer here]
+```
+
+## 3. Universal Kriging
+
+We've come to the last leg of our journey.
+
+Universal Kriging (UK) is an extension of OK. UK does not follow a step-wise process of adding an OK prediction of GLS residuals to a GLS surface (like GLS-RK does).
+
+UK bypasses the GLS and predicts a surface from a 2nd-order OLS. In other words the spatial structure of the residuals (the variogram) is not modeled from the GLS residuals but the 2nd-order model directly.
+
+**We start with a clean slate**
+
+```{r look }
+#- what do we have thusfar?
+names(grid.sf)
+```
+```{r str-grid }
+str(grid.sf$geometry)
+```
+
+```{r cfaq-sf-names}
+#-- 
+names(cfaq.sf)
+```
+
+```{r str-cfaq-geom}
+str(cfaq.sf$geometry)
+```
+
+**With UK we must include the coordinates (the predictor variable) in both the observation and prediction grid**
+
+```{r str-grid-sf-coords }
+#-- 
+str(st_coordinates(grid.sf))
+```
+
+```{r variables-to-grid }
+#- variables to grid
+grid.sf$X <- st_coordinates(grid.sf)[ , "X"]
+grid.sf$Y <- st_coordinates(grid.sf)[ , "Y"]
+names(grid.sf)
+```
+
+```{r uk }
+#- uk
+k.uk <- krige(zm ~ E + N + I(E^2) + I(N^2) + I(E*N), locations = aq.sf, newdata = grid1km.sf, model=vr.m.f)
+```
+
+```{r plot-uk }
+#- plot uk predictors
+plot(k.uk["var1.pred"], pch=15, col = rainbow(100), nbreaks=24, main="UK predictions, m")
+```
+
+```{r uk-std-dev-summary }
+#- uk-prediction std-dev.
+k.uk$var1.sd <- sqrt(k.uk$var1.var)
+summary(k.uk)
+```
+
+```{r plot-uk-std-dev }
+#- plot std-dev
+plot(k.uk["var1.sd"], pch=15, nbreaks=24, pal = heat.colors, main="Standard errors of UK predictions, m")
+```
+
+Compare the UK standard deviations to the GLS-Regression Kriging
+
+```{r uk-std }
+#- summary uk
+summary(k.uk$var1.sd)
+```
+
+```{r gls-ok-std }
+#- summary uk
+summary(kr$var1.sd)
+```
+
+**Note:** the UK should be larger because it includes the uncertainty of the trend surface.
+
+Lets illustrate the UK and GLS-RK differences as a histogram
+
+```{r diff-uk-minus-gls-rk-summary }
+#- diff. uk and gls-rk summary
+grid.uk <- grid
+values(grid.uk) <- k.uk$var1.pred
+summary(grid.diff.uk.rkgls <- (grid.uk - grid.rkgls))
+```
+
+```{r diff-uk-minus-gls-rk-hist }
+#- diff. uk and gls-rk hist.
+hist(grid.diff.uk.rkgls, main = "UK - GLS-RK prediction differences", freq = FALSE, xlab = "difference, UK - GLS-RK")
+```
+
+```{r plot-diff-uk-minus-gls-rk}
+#- plot uk minus gls-rk diff surface
+plot(grid1km.diff.uk.rkgls, sub="UK - GLS-RK predictions", main="difference, m", xlab="East", ylab="North", col = topo.colors(64))
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- How large are differences between the UK and GLS-RK trend surface predictions? Where are the largest differences? Explain why there is a difference.
+
+```{ r ans-11}
+[click in this cell and type your answer here]
+```
+
+$\color{red}{\text{\textbf{DISCUSSION}}}$: 
+- In this study area, which of the prediction methods would you recommend, and why?
+
+```{ r ans-11}
+[click in this cell and type your answer here]
+
+- For each method introduced, in what situations would you prefer it to the other methods?
+
+```{ r ans-12}
+[click in this cell and type your answer here]
