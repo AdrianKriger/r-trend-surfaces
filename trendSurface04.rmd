@@ -426,7 +426,7 @@ Universal Kriging (UK) is an extension of OK. UK does not follow a step-wise pro
 
 UK bypasses the GLS and predicts a surface from a 2nd-order OLS. In other words the spatial structure of the residuals (the variogram) is not modeled from the GLS residuals but the 2nd-order model directly.
 
-**We start with a clean slate**
+**We start with a _clean_ slate**
 
 ```{r look }
 #- what do we have thusfar?
@@ -461,7 +461,7 @@ names(grid.sf)
 
 ```{r uk }
 #- uk
-k.uk <- krige(waterLevel ~ E + N + I(E^2) + I(N^2) + I(E*N), locations = aq.sf, newdata = grid.sf, model=vr.m.f)
+k.uk <- krige(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), locations = cfaq.sf, newdata = grid.sf, model=vr.m.f)
 ```
 
 ```{r plot-uk }
