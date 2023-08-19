@@ -1,5 +1,5 @@
 ---
-title: "Trend Surface Analysis with R (part III)"
+title: "Trend Surface Analysis with R (part IV)"
 output: html_notebook
 ---
 ##-- arkriger: August 2023
