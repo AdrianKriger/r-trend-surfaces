@@ -67,7 +67,7 @@ heading_anchors: true
 
 # Aux links for the upper right navigation
 aux_links:
-  "LoD1 City Model on GitHub":
+  "Trend Surface Analysis with R on GitHub":
     - "//github.com/AdrianKriger/r-trend-surfaces"
 
 # Makes Aux links open in a new tab. Default is false
