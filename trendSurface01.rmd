@@ -20,7 +20,7 @@ You are required to insert your outputs and any comment into this document. The 
 - This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
 
 ```{r install }
-options(prompt="> ", continue="+ ", digits=3, width=70, show.signif.stars=F, repr.plot.width=8, repr.plot.height=8)
+options(prompt="> ", continue="+ ", digits=3, width=70, show.signif.stars=F, repr.plot.width=7, repr.plot.height=7)
 rm(list=ls())
 
 # Install necessary packages: You only need to run this part once

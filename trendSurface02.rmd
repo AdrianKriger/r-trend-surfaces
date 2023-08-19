@@ -1,0 +1,471 @@
+---
+title: "Trend Surface Analysis with R (part II)"
+output: html_notebook
+---
+##-- arkriger: August 2023
+
+This Notebook (the second-of-four) serves to introduce a user to a series of exercises focused on higher order Trend Surface analysis with R.
+
+It consists of two sections:
+
+1. Trend analysis by Ordinary Least Squares
+	a) First-order trend surfaces
+	b) Second-order trend surfaces
+2. Trend Surface Prediction
+
+$\color{red}{\text{\textbf{REQUIRED}}}$: 
+You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:
+
+- Plots and other outputs from executing the code chunks
+- Discussion of your plots and other outputs as well as conclusions reached.
+- This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
+
+1. Ordinary Least Square
+From the previous trendSurface01 Notebook we are aware our data suggests a trend surface; a water level as some smooth function of coordinates. A polynomial function of the coordinates.
+
+The higher the degree of the polynomial (1st, 2nd, 3rd, etc.) the more the surface matches the original data. We should however take care.
+
+We want realistic results and a prediction within our dataset. **The higher the degree the more extreme the extrapolations.**
+
+```{r install }
+options(prompt="> ", continue="+ ", digits=3, width=70, show.signif.stars=F, repr.plot.width=7, repr.plot.height=7)
+rm(list=ls())
+
+# Install necessary packages: You only need to run this part once
+# Install necessary packages: You only need to run this part once
+##- install.packages(c("sf", "gstat", "units", "terra"))
+
+#library(repr)
+library(sf) # 'simple features' representations of spatial objects
+library(gstat) # geostatistics
+library(units) # units of measure
+library(terra) # gridded data structures ("rasters")
+```
+**due to the limitation of the lm function (the linear regression model) in R we work with the UTM coordinates as a field in a data.frame and NOT spatial objects.** i.e.: we drop the units.
+
+```{r read-dataset }
+#-- read
+file = 'cptFlatsAquifer_watertable4.txt'
+```
+```{r import }
+#-- import
+cfaq <- read.csv(file, header = 1, sep = ',', dec = '.')
+```
+
+```{r look }
+#-- look
+head(cfaq ,3)
+```
+### 1. a) First-order Trend Surface
+
+When we talk about a first-degree trend surface we _literally mean_ the surface can be represented with a first degree polynomial; namely
+
+
+$$
+    Z = 𝜷_0 + 𝜷_1x + 𝜷_2y + ϵ
+$$
+
+where: $Z$ is the is the elevation of the surface at $(x,y)$; $𝜷$ are possible coefficients representing the average elevation and slopes in the $x$ and $y$ directions and $ε$ is the error term accounting for small fluctuations and deviations from the average.
+
+A First-order trend surface defines a surface in terms of elevation and one other variable (e.g.: slope). In other words it is a plane surface.
+
+Furthermore; _first-order_ referes to the **power** to which each coordinate is raised. Here its the first power.
+
+```{r 1st-ols-model }
+#- 1st order design matrix
+#head(model.matrix(~st_coordinates(cfaq.sf)[,1] + st_coordinates(cfaq.sf)[,2], data=cfaq))
+head(model.matrix(~X + Y, data=cfaq))
+```
+
+We see the design matrix _[called $X$]_ is an _n_ * 3 matrix. With column 1 being an intercept, column 2 an x-value and column 3 a y-value.
+
+Briefly and without getting into too much Math; if we apply the design matrix _[$X$]_ to the previous formula we get;
+
+$$
+    𝙮 = X𝜷 + ϵ
+$$
+
+This simplyfies our lives considerably; because we know $𝙮$ _---these are the elevations at known locations---_ and we know $X$ _---these are the locations (x and y) of the known elevations_. i.e.: our dataset. Our challenge now is to solve $𝜷$; which we can solve directly through;
+
+$$
+    𝜷_{sols} = (X^TX)^{-1}X^T . y
+$$
+
+**We _fit_ this linear model with the `lm` function.**
+
+```{r fit-1st-ols-model }
+# fit first order trend surface and summarize it goodness of fit
+model.ts1 <- lm(waterLevel ~ X + Y, data=drop_units(cfaq))
+summary(model.ts1)
+```
+We see amoung the results of our **_fit_** is an Intercept ---an elevation--- and two coefficients that give a change in elevation per unit (in this case 500m).
+
+In other words for every 500-m east and west we increase by 0.00205m and 0.00245m respectively.
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- What is the equation of the trend surface? How does elevation vary with the E and N coördinates? Is the relation statistically-significant? How much of the total variability does it explain? Are all the coefficients statistically-significant?
+
+```{ r ans-01}
+[click in this cell and type your answer here]
+```
+
+```{r summarize-lack-fit}
+#- summarize residuals (lack of fit)
+res.ts1 <- set_units(residuals(model.ts1), m); summary(res.ts1)
+```
+
+```{r hist-1st-order-residual }
+#- histogram
+hist(res.ts1, breaks=16, main="Residuals from 1st-order trend", xlab="residual elevation (m)")
+```
+
+```{r range-1st-ols-model }
+#rug(res.ts1)
+range(res.ts1)
+```
+
+```{r max-1st-order-residual }
+max(abs(res.ts1))/median(cfaq$waterLevel)*100
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- What is the range of residuals? How does this compare with the target variable? How are the residuals distributed in feature space?
+
+```{ r ans-02}
+[click in this cell and type your answer here]
+```
+
+**Two diagnostic `plot()`s of a `linear model` that deserve attention are:**
+
+> i) residuals vs fitted values;  
+> ii) quantile-quantile ('QQ') plot of the standardized residuals. The QQ plot is significant and shows the standard residuals and the expected residuals (if the residuals were normally distributed) _---it should be a stright line_.
+
+```{r diagnostic-1st-ols-model }
+#- diagnostic plot of linear model
+par(mfrow=c(1,2))
+plot(model.ts1, which=1:2)
+par(mfrow=c(1,1))
+```
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Does this model meet the feature-space requirements for a valid linear model?
+
+> a. No relation between the fitted values and the residuals  
+> b. Equal spread of residuals across the range of fitted values  
+> c. Normally-distributed standardized residuals
+
+```{ r ans-03}
+[click in this cell and type your answer here]
+```
+
+```{r plot-residual-1st-ols-model }
+#- residuals as postplot
+plot(cfaq$Y ~ cfaq$X,
+     #st_coordinates(cfaq.sf)[,1], st_coordinates(cfaq.sf)[,2],
+     cex=3*abs(res.ts1)/max(abs(res.ts1)),
+     col=ifelse(res.ts1 > set_units(0, m), "green", "red"),
+     xlab="X", ylab="Y",
+     main="Residuals from 1st-order trend",
+     sub="Positive: green; Negative: red", asp=1, lwd=1.6)
+grid()
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Is there a spatial pattern to the residuals? Is there local spatial correlation without an overall pattern? What does this imply about the suitability of a first-order trend surface?
+
+```{ r ans-04}
+[click in this cell and type your answer here]
+```
+
+### 1. b) Second-order Trend Surface
+
+Similarly; when we talk about a second-degree trend surface we _literally mean_ the surface can be represented with a second degree polynomial; namely
+
+$$
+    Z = 𝜷_0 + 𝜷_1x + 𝜷_2y + 𝜷_3x^2 + 𝜷_4y^2 + 𝜷_5(y^2*x^2) + ε
+$$
+
+where: $Z$ is the is the elevation of the surface at $(x,y)$; $𝜷$ are possible coefficients representing the average elevation, slopes and curvatures in the $x$ and $y$ directions and $ε$ is the error term accounting for small fluctuations and deviations from the average.
+
+**Notice:** A Second-order trend surface includes linear, quadratic (squared) functions and their cross-product. This means the surface can be defined in terms of elevation, slope and another variable (e.g.: curvature). In other words it is no longer a plane surface.
+
+**We also define and _fit_ the model matrix**
+
+```{r 2nd-order-model }
+#- 2nd order design matrix
+head(model.matrix(~ X + Y + I(X^2) + I(Y^2) + I(X*Y), data=cfaq))
+
+#head(model.matrix(~st_coordinates(cfaq.sf)[,1] + st_coordinates(cfaq.sf)[,2] + I(st_coordinates(cfaq.sf)[,1]^2) + I(st_coordinates(cfaq.sf)[,2]^2)
+#  + I(st_coordinates(cfaq.sf)[,1]*st_coordinates(cfaq.sf)[,2]), data=cfaq))
+```
+
+```{r fit-2nd-ols-model }
+#- fit the 2nd order
+model.ts2 <- lm(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), data=drop_units(cfaq))
+
+#model.ts2 <- lm(cfaq$waterLevel ~ st_coordinates(cfaq.sf)[,1] + st_coordinates(cfaq.sf)[,2] + I(st_coordinates(cfaq.sf)[,2]^2) + I(st_coordinates(cfaq.sf)[,1]^2) + I(st_coordinates(cfaq.sf)[,2]*st_coordinates(cfaq.sf)[,1]),
+                #data=drop_units(cfaq))
+summary(model.ts2)
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- How much of the variance does the second-order surface explain?
+
+```{ r ans-05}
+[click in this cell and type your answer here]
+```
+
+**Since we now have two linear models** _---one more complicated than the other---_ **we can compare them to determine if the simplier is in fact better. We do this with the `anova()` function**
+
+```{r compare-lm-models }
+#- compare the 1st and 2nd order models statistically
+anova(model.ts1, model.ts2)
+```
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Is the second-order surface statistically superior to the first-order surface?
+
+```{ r ans-06}
+[click in this cell and type your answer here]
+```
+
+```{r summarize-residual-2nd-ols-model }
+#- summary
+res.ts2 <- set_units(residuals(model.ts2), m)
+summary(res.ts2)
+```
+```{r hist-2nd-order-residual }
+#- graphic summary
+hist(res.ts2, breaks=16, main="Residuals from 2nd-order trend", xlab="residual elevation (m)")
+rug(res.ts2)
+max(abs(res.ts2))/median(cfaq$waterLevel)
+```
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- What is the range of residuals? How does this compare with the target variable? How are they distributed in feature space? How do these compare with the residuals from the first-order surface?
+
+```{ r ans-07}
+[click in this cell and type your answer here]
+```
+
+```{r diagnostic-2nd-ols-model
+#- diagnostic plots
+par(mfrow=c(1,2))
+plot(model.ts2, which=1:2)
+par(mfrow=c(1,1))
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Does this model meet the feature-space requirements for a valid linear model?
+
+> a. No relation between the fitted values and the residuals  
+> b. Equal spread of residuals across the range of fitted values  
+> c. Normally-distributed standardized residuals
+
+```{ r ans-08}
+[click in this cell and type your answer here]
+```
+**Identify the largest overprediction that do not fit the normal Q-Q plot**
+
+Looking at the QQ plot above we can take a value of 1 standard deviation to find the largest negative residuals.
+
+```{r summarize-standard-2nd-ols-model
+summary(sres.ts2 <- rstandard(model.ts2))
+```
+```{r select-std-deviation}
+(ix <- which(sres.ts2 < -2))
+```
+
+```{r fit-residuals }
+(cbind(actual=cfaq[ix, "waterLevel"], fitted=fitted(model.ts2)[ix],
+       residual=res.ts2[ix],
+       std.res <- sres.ts2[ix]))
+```
+
+```{r plot-residual-2nd-ols-model }
+#- display residuals as postplot and highlight the largest over-predictions
+plot(cfaq$Y ~ cfaq$X,
+     #st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
+     cex=3*abs(res.ts2)/max(abs(res.ts2)),
+     col=ifelse(res.ts2 > set_units(0, m), "green", "red"),
+     xlab="E", ylab="N", asp=1, lwd=1.6,
+     main="Residuals from 2nd-order trend",
+     sub="Positive: green; Negative: red; Black dots: severe over-predictions")
+points(cfaq[ix, "Y"] ~ cfaq[ix, "X"],
+       #st_coordinates(cfaq.sf)[ix, 'X'], st_coordinates(cfaq.sf)[ix , 'Y'],
+       pch=20)
+#plot(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],pch=20, col="blue")#, add = TRUE)
+text(cfaq[ix, "X"] ~ cfaq[ix, "Y"],
+     #st_coordinates(cfaq.sf)[,1], st_coordinates(cfaq.sf)[,2],
+     #st_coordinates(cfaq.sf)[ix, 'X'], st_coordinates(cfaq.sf)[ix ,'Y'],
+     round(sres.ts2[ix], 2), pos=4)
+grid()
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Is there an overall pattern to the residuals? Is there local spatial correlation without an overall pattern? Are the largest model residuals clustered? Does there seem to be any anisotropy (stronger spatial dependence in one direction than the orthogonal direction)?
+
+```{ r ans-09}
+[click in this cell and type your answer here]
+```
+
+## 2. Trend Surface Prediction
+
+**Now we come to the fun bit.**
+
+**We use the** `trend surface model`, **we've just created, and predict values where non-exist over our study area. We typically do so on a regular grid**
+
+We create a grid slightly different from the previous [trendSurface01 notebook](https://github.com/AdrianKriger/r-trend-surfaces/blob/main/trendSurface01.rmd) method 
+
+```{r create-grid }
+n.col <- length(seq.e <- seq(min.x <- floor(min(cfaq$X)/1000)*1000,
+                              max.x <- ceiling(max(cfaq$X)/1000)*1000, by=1000))
+
+n.row <- length(seq.n <- seq(min.y <- floor(min(cfaq$Y)/1000)*1000,
+                              max.y <- ceiling(max(cfaq$Y)/1000)*1000, by=1000))
+
+
+#we want a XXXXm grid
+grid <- rast(nrows = n.row, ncols = n.col,
+                xmin=min.x, xmax=max.x,
+                ymin=min.y, ymax=max.y, crs = st_crs(cfaq.sf)$proj4string,
+                resolution = 500, names="waterLevel")
+
+values(grid) <- NA_real_
+
+#class(grid)
+#crs(grid)
+#plot(grid); grid()
+
+grid.df <- as.data.frame(grid, xy = TRUE, na.rm = FALSE)
+names(grid.df)[1:2] <- c("X", "Y") # match the names of the point dataset
+summary(grid.df)
+```
+
+**Now we are ready. We map the values of the `second-order trend surface` onto this *empty* grid**
+
+We do this at a Best fit and a 95% prediction level
+
+```{r predict-2nd-ols-model }
+pred.ts2 <- predict.lm(model.ts2,
+                       newdata = grid.df,
+                       interval = "prediction", level = 0.95)
+
+summary(pred.ts2)
+```
+
+```{r summarize-grid-values }
+summary(values(grid))
+```
+**And add the `model predictions` to the surface**
+
+```{r 2nd-ols-model-prediction-to-grid }
+values(grid) <- pred.ts2[,"fit"]
+summary(values(grid))
+```
+
+```{r plot-2nd-ols}
+#-- plot
+plot(grid, col = rainbow(100), main = "OLS 2nd-order predicted surface")
+points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
+       pch=21, #pch=16,
+       col = ifelse(res.ts2 < set_units(0, m), "red", "green"),
+       cex=2*abs(res.ts2)/max(abs(res.ts2)),
+                                     pch=21,
+                                     bg = adjustcolor("black", alpha.f = 0.1),
+                                     #col = "black",
+                                     #cex = 0.9,
+                                     lwd = 0.5)
+       #bg = adjustcolor("black", alpha.f = 0.2),
+       #col = "black",
+       #cex = 0.9, lwd = 0.5)
+```
+
+We overlay the _red_ (negative) and _green_ (positive) residuals.
+
+**For comparison; lets look at the 1st-order surface.**
+
+```{r plot-1st-ols-model-prediction-to-grid}
+#--
+pred.ts1 <- predict.lm(model.ts1,
+                       newdata = grid.df,
+                       interval = "prediction", level = 0.95)
+gridb <- grid
+values(gridb) <- pred.ts1[,"fit"]
+
+
+# Plot the first grid
+plot(gridb, col = rainbow(100), main = "OLS 1st-order predicted surface")
+points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1], pch=21,
+       #bg = adjustcolor("black", alpha.f = 0.2),
+       #col = "black",
+       #cex = 0.9, lwd = 0.5)
+       col = ifelse(res.ts1 < set_units(0, m), "red", "green"),
+       cex=2*abs(res.ts1)/max(abs(res.ts1)),
+       bg = adjustcolor("black", alpha.f = 0.1),
+                                     #col = "black",
+                                     #cex = 0.9,
+      lwd = 0.5)
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- -  How well does the trend surface fit the points? Are there obvious problems?
+
+```{ r ans-10}
+[click in this cell and type your answer here]
+```	   
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Comment on how the 1st- and 2nd-order surface predictions fulfill thier definitions.
+> $\color{blue}{\text{\textbf{Hint}}}$: Look at the two surfaces. Is the 1st-order a plane? In which direction does it slope? What is the shape of the 2nd-order surface?
+
+```{ r ans-11}
+[click in this cell and type your answer here]
+```
+
+
+```{r summarize-predict-2nd-ols-model }
+#-- the following three cells are general housekeeping to add the (best, lwr and upr) predictions to the data.frame
+summary(pred.ts2)
+```
+
+```{r summarize-griddf }
+summary(grid.df)
+
+```{r 2nd-ols-prediction-to-griddf}
+grid.df[, 3:5] <- pred.ts2
+names(grid.df)[3:5] <- c("ts2.fit", "ts2.lwr", "ts2.upr")
+summary(grid.df)
+```
+
+**We end this Notebook with summarizing the uncertainty from the trend surface as absolute differences between the upper and lower predictions limits; and then a percentage of the best fit value. And then illustrate this 95% prediction interval as a it applies to our study area**
+
+```{r summarize-2nd-ols-uncertainty }
+#-- uncertainty as upper and lower absolute values
+summary(grid.df$ts2.diff.range <- grid.df$ts2.upr - grid.df$ts2.lwr)
+```
+
+```{r summarize-2nd-ols-uncertainty-percentage }
+#- uncertainty as percentage of best fit
+summary(100*grid.df$ts2.diff.range/grid.df$ts2.fit)
+```
+
+```{r plot-uncertainty }
+grid.diff <- grid
+values(grid.diff) <- grid.df$ts2.diff.range
+plot(grid.diff, col=cm.colors(64),
+main="Range of 95% prediction interval, 2nd-order trend, OLS fit")
+grid()
+points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1], pch=16,col = "gray")
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- What are the units of prediction interval? How large are they? How does this compare to the variable we are trying to predict?
+
+```{ r ans-12}
+[click in this cell and type your answer here]
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Describe the spatial pattern of the prediction interval.
+
+```{ r ans-13}
+[click in this cell and type your answer here]
+```
