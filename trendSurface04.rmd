@@ -4,7 +4,7 @@ output: html_notebook
 ---
 ##-- arkriger: August 2023
 
-We end our journey of higher order Trend Surface analysis with R with this Notebook. Here we cover a lot of ground:
+We end our journey through *higher order* **_Trend Surface analysis with R_** with this Notebook. Here we cover a lot of ground:
 
 1. Generalized Least Squares (GLS)
 	a) Variogram Modeling and
