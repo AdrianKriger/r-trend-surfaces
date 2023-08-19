@@ -18,7 +18,7 @@ remote_theme: pmarsceill/just-the-docs
 # in the templates via {{ site.myvariable }}.
 title: Trend Surface Analysis with R (Cape Flats Aquifer)
 description: The identification and modelling the underlying pattern in spatial data and interpolation techniques.
-baseurl: "/osm_LoD1_3DCityModel" # the subpath of your site, e.g. /blog
+baseurl: "/r-trend-surfaces" # the subpath of your site, e.g. /blog
 url: "https://adriankriger.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 
 permalink: pretty
