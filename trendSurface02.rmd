@@ -4,7 +4,7 @@ output: html_notebook
 ---
 ##-- arkriger: August 2023
 
-This Notebook (the second-of-four) serves to introduce a user to a series of exercises focused on higher order Trend Surface analysis with R.
+This Notebook (the second-of-four) serves to continue a journey through a series of exercises focused on *higher order* **_Trend Surface analysis with R_**.
 
 It consists of two sections:
 
@@ -447,7 +447,7 @@ summary(grid.df$ts2.diff.range <- grid.df$ts2.upr - grid.df$ts2.lwr)
 summary(100*grid.df$ts2.diff.range/grid.df$ts2.fit)
 ```
 
-```{r plot-uncertainty }
+```{r plot-2nd-ols-uncertainty }
 grid.diff <- grid
 values(grid.diff) <- grid.df$ts2.diff.range
 plot(grid.diff, col=cm.colors(64),

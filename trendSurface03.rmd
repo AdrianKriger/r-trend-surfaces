@@ -22,7 +22,7 @@ We now truly start our journey into higher order trend surface analysis. GAMs ar
 
 The disadvantage of these methods are their computational complexity and the risk of overfitting. It is pretty dangerous to extrapolate outside the range of calibration (i.e.: beyond the observation points).
 
-```{r }
+```{r install }
 options(prompt="> ", continue="+ ", digits=3, width=70,  show.signif.stars=F, repr.plot.width=7, repr.plot.height=7)
 rm(list=ls())
 
@@ -374,7 +374,7 @@ As with the other interpolation plots; the red and green illustrate positive and
 
 Similarly; what we really want to know is where the thin-plate spline differs from the GAM surface.
 
-```{r r plot-diff-tps-gam}
+```{r plot-diff-tps-gam }
 #- show the surface
 grid.diff.tps.gam <- grid
 grid.diff.tps.gam <- grid.tps - grid.gam
