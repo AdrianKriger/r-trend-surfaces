@@ -6,7 +6,7 @@ description: "Trend Surface Analysis with R."
 permalink: /
 ---
 
-# Trend Surface Analysis with R
+# Trend Surface Analysis with R (Cape Flats Aquifer)
 {: .fs-9 }
 
 In this set of exercises, we will explore the concepts and applications of trend surface analysis, focusing on 1st and 2nd order trend surfaces and empirical smooth functions. We also delve into the various flavors of Kriging; a powerful geostatistical interpolation method.
