@@ -2,6 +2,7 @@
 title: "Trend Surface Analysis with R (part I)"
 output: html_notebook
 ---
+##-- arkriger: August 2023
 
 This Notebook (the first-of-four) serves to introduce a user to a series of exercises focused on higher order Trend Surface analysis with R.
 
@@ -13,7 +14,7 @@ It consists of two sections:
 	b) Inverse Distance Weighting
 
 $\color{red}{\text{\textbf{REQUIRED}}}$: 
-You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:
+**You are required to insert your outputs and any comment into this document.** The document you submit should therefore contain the existing text in addition to:
 
 - Plots and other outputs from executing the code chunks
 - Discussion of your plots and other outputs as well as conclusions reached.
@@ -355,7 +356,7 @@ par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
 [click in this cell and type your answer here]
 ```
 - How can the quality of the IDW improve?
-$\color{blue}{\text{\textbf{Hint}}}$: Consider the location and density of the sample (input) points
+> $\color{blue}{\text{\textbf{Hint}}}$: Consider the location and density of the sample (input) points
 
 ```{ r ans-05}
 [click in this cell and type your answer here]

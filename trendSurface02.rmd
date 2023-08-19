@@ -14,7 +14,7 @@ It consists of two sections:
 2. Trend Surface Prediction
 
 $\color{red}{\text{\textbf{REQUIRED}}}$: 
-You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:
+**You are required to insert your outputs and any comment into this document.** The document you submit should therefore contain the existing text in addition to:
 
 - Plots and other outputs from executing the code chunks
 - Discussion of your plots and other outputs as well as conclusions reached.
@@ -312,7 +312,7 @@ $\color{red}{\text{\textbf{QUESTION}}}$:
 
 **We use the** `trend surface model`, **we've just created, and predict values where non-exist over our study area. We typically do so on a regular grid**
 
-We create a grid slightly different from the previous [trendSurface01 notebook](https://github.com/AdrianKriger/r-trend-surfaces/blob/main/trendSurface01.rmd) method 
+We create a grid differently from the previous [trendSurface01 notebook](https://github.com/AdrianKriger/r-trend-surfaces/blob/main/trendSurface01.rmd) method 
 
 ```{r create-grid }
 n.col <- length(seq.e <- seq(min.x <- floor(min(cfaq$X)/1000)*1000,

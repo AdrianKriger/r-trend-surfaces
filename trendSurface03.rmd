@@ -1,0 +1,439 @@
+---
+title: "Trend Surface Analysis with R (part III)"
+output: html_notebook
+---
+##-- arkriger: August 2023
+
+In this third Notebook on *higher order* **_Trend Surface analysis with R_** we introduce;
+
+1. General Additive Models (GAM) and
+2. Thin plate splines
+
+$\color{red}{\text{\textbf{REQUIRED}}}$: 
+**You are required to insert your outputs and any comment into this document.** The document you submit should therefore contain the existing text in addition to:
+
+- Plots and other outputs from executing the code chunks
+- Discussion of your plots and other outputs as well as conclusions reached.
+- This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
+
+## 1. General Additive Models
+
+We now truly start our journey into higher order trend surface analysis. GAMs are very similar to multiple `linear regression`; where each predictor  typically has a smooth function. The advantage is that GAMs can capture intricate and complex patterns traditional `linear models` often miss.
+
+The disadvantage of these methods are their computational complexity and the risk of overfitting. It is pretty dangerous to extrapolate outside the range of calibration (i.e.: beyond the observation points).
+
+```{r }
+options(prompt="> ", continue="+ ", digits=3, width=70,  show.signif.stars=F, repr.plot.width=7, repr.plot.height=7)
+rm(list=ls())
+
+# Install necessary packages: You only need to run this part once
+##- install.packages(c("sf", "gstat", "ggplot2", "gridExtra","units", "terra","mgcv","fields"))
+
+#library(repr)
+library(sf) # 'simple features' representations of spatial objects
+library(gstat) # geostatistics
+library(ggplot2) # geostatistics
+library(gridExtra)
+library(units) # units of measure
+library(terra) # gridded data structures ("rasters")
+library(mgcv)
+library(fields)
+```
+
+We've already covered creating a 500m grid and 2nd-order prediction and interpolation with previous Notebooks and move through the introduction quickly.
+
+```{r read-dataset }
+#-- read
+file = 'cptFlatsAquifer_watertable4.txt'
+```
+
+```{r import-grid-2nd-ols }
+#-- import
+cfaq <- read.csv(file, header = 1, sep = ',', dec = '.') #sep = '\t',
+#- set crs
+cfaq.sf <- st_as_sf(cfaq, coords=c("long", "lat"), crs = 4326) #wgs84
+#- transform to local crs
+cfaq.sf <- st_transform(cfaq.sf, crs = 32734) #utm 34s
+cfaq$X <- st_coordinates(cfaq.sf)[, "X"]
+cfaq$Y <- st_coordinates(cfaq.sf)[, "Y"]
+
+model.ts2 <- lm(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), data=drop_units(cfaq))
+
+#--  create grid
+#(n.col <- length(seq.e <- seq(min.x <- floor(min(st_coordinates(cfaq.sf)[,1])/1000)*1000,
+#                              max.x <- ceiling(max(st_coordinates(cfaq.sf)[,1])/1000)*1000, by=1000)))
+#(n.col <- length(seq.e <- seq(min.x <- floor(min(st_coordinates(cfaq.sf)[,2])/1000)*1000,
+#                              max.x <- ceiling(max(st_coordinates(cfaq.sf)[,2])/1000)*1000, by=1000)))
+(n.col <- length(seq.e <- seq(min.x <- floor(min(cfaq$X)/1000)*1000,
+                              max.x <- ceiling(max(cfaq$X)/1000)*1000, by=1000)))
+(n.row <- length(seq.n <- seq(min.y <- floor(min(cfaq$Y)/1000)*1000,
+                              max.y <- ceiling(max(cfaq$Y)/1000)*1000, by=1000)))
+
+#we want a XXXXm grid
+grid <- rast(nrows = n.row, ncols = n.col,
+             xmin=min.x, xmax=max.x,
+             ymin=min.y, ymax=max.y, crs = st_crs(cfaq.sf)$proj4string,
+             resolution = 500, names="waterLevel")
+
+values(grid) <- NA_real_
+
+grid.df <- as.data.frame(grid, xy = TRUE, na.rm = FALSE)
+names(grid.df)[1:2] <- c("X", "Y") # match the names of the point dataset
+summary(grid.df)
+
+#--
+pred.ts2 <- predict.lm(model.ts2,
+                       newdata = grid.df,
+                       interval = "prediction", level = 0.95)
+
+#-- add the three prediction fields (fit, lower, upper) to the data
+grid.df[, 3:5] <- pred.ts2
+names(grid.df)[3:5] <- c("ts2.fit", "ts2.lwr", "ts2.upr")
+```
+
+```{r look }
+#-- look
+head(cfaq ,3)
+```
+
+We start through first exploring whether a curve _(a smoothing function)_ better captures the relationships between location (x, y) and the aquifer water level. We do this through the local polynomial regression via the `leoss` function built into `ggplot2` as `geom_smooth`.
+
+```{r plot-ggplot2-leoss }
+##- plot
+g1 <- ggplot(drop_units(cfaq), aes(x=Y, y=waterLevel)) +
+  geom_point() +
+  geom_smooth(method="loess") +
+  labs(y = "elevation [m]")
+g2 <- ggplot(drop_units(cfaq), aes(x=X, y=waterLevel)) +
+  geom_point() +
+  geom_smooth(method="loess") +
+  labs(y = "elevation [m]")
+grid.arrange(g1, g2, ncol = 2)
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Do these marginal relations appear to be linear in the predictors?
+
+```{ r ans-01}
+[click in this cell and type your answer here]
+```
+
+**Fitting the GAM**
+
+We work with the **Mixed GAM Computation Vehicle** `mgcv` library default smoothing setting and explore **thin plate splines**, as an alternate smoothing function later.
+
+```{r fit-gam-summary}
+model.gam <- gam(waterLevel ~ s(X, Y, k = 29), data=drop_units(cfaq))
+summary(model.gam)
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- How well does this model fit the calibration observations?
+
+```{ r ans-02}
+[click in this cell and type your answer here]
+```
+
+**Since we have a 2nd-order trend surface; lets compare.**
+
+we do this with numbers and graphs.
+
+```{r residuals-gam-summary }
+#- residuals
+resid.gam <- residuals(model.gam)
+summary(resid.gam)
+```
+
+```{r residuals-2nd-ols-summary}
+summary(residuals(model.ts2))
+```
+```{r hist-gam-2nd-ols-residuals }
+#regular histogram
+par(mfrow=c(1,2))
+hist(resid.gam)#, xlim=c(-5, 5))#,
+     #breaks=c(min(cfaq$waterLevel), max(cfaq$waterLevel), by=2)), main="Residuals from GAM")
+rug(residuals(model.gam))
+hist(residuals(model.ts2))#, xlim=c(-30, 30))#,
+     #breaks=c(min(cfaq$waterLevel), max(cfaq$waterLevel), by=2), main="Residuals from 2nd-order OLS trend")
+rug(residuals(model.ts2))
+par(mfrow=c(1,1))
+```
+
+```{r ggplot2-hist-gam-2nd-ols-residuals }
+#-- ggplot2
+g1 <- ggplot(data=as.data.frame(resid.gam), aes(resid.gam)) +
+  geom_histogram(#breaks=seq(-20,20,by=2),
+                 fill="lightblue", color="black", alpha=0.9) +
+  geom_rug() +
+  labs(title = "Residuals from GAM",
+       x = expression(paste(Delta, m)))
+g2 <- ggplot(data=as.data.frame(residuals(model.ts2)), aes(residuals(model.ts2))) +
+  geom_histogram(#breaks=seq(-20,20,by=2),
+                 fill="lightgreen", color="darkblue", alpha=0.9) +
+  geom_rug() +
+  labs(title = "Residuals from 2nd order polynomial trend surface",
+       x = expression(paste(Delta, m)))
+grid.arrange(g1, g2, nrow=1)
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Which histogram shows the narrowest spread?
+
+```{ r ans-03}
+[click in this cell and type your answer here]
+```
+
+```{r plot-residuals-gam }
+#-- residuals as a bubble plot. show the size of the residuals by the size of a point, and the polarity (positive vs. negative)
+cfaq$resid.gam <- resid.gam
+ggplot(data = drop_units(cfaq)) +
+  aes(x=X, y=Y, size = abs(resid.gam),
+      col = ifelse((resid.gam < 0), "red", "green")) +
+  geom_point(alpha=0.7) +
+  scale_size_continuous(name = expression(paste(plain("residual ["),
+                                                reDelta, m, plain("]"))),
+                        breaks=seq(0,12, by=2)) +
+  scale_color_manual(name = "polarity",
+                     labels = c("negative","positive"),
+                     values = c("red","green","blue"))
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Does there appear to be any local spatial correlation of the residuals?
+
+```{ r ans-04}
+[click in this cell and type your answer here]
+```
+
+```{r plot-gam-3D}
+#- gam as 3D surface
+plot.gam(model.gam, rug = FALSE, se = FALSE, select=1,
+         scheme=1, theta=110+130, phi=30)
+```
+
+```{r plot-gam-3D-std-error }
+#-3D with 1 standard error of fit
+vis.gam(model.gam, plot.type="persp", color="terrain",
+        theta=160, zlab="elevation", se=1.96)
+```
+
+**GAM `RMSE`and predict the model onto our 500m grid**
+
+```{r rmse }
+#-- rmse
+(rmse.gam <- sqrt(sum(residuals(model.gam)^2)/length(residuals(model.gam))))
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Does there appear to be any local spatial correlation of the residuals?
+
+```{ r ans-05}
+[click in this cell and type your answer here]
+```
+
+```{r predict-gam-summary }
+#-- predict aquifer elevation, standard error of prediction using the fitted GAM
+tmp <- predict.gam(object=model.gam,
+                   newdata=grid.df,
+                   se.fit=TRUE)
+summary(tmp$fit)
+```
+
+```{r gam-std-error-summary }
+summary(tmp$se.fit)
+```
+
+```{r str }
+str(tmp)
+```
+
+```{r add-gam-to-griddf}
+#-- add these to the data.frame of the spatial grid with the as.numeric(1d array to vector)
+grid.df$pred.gam <- as.numeric(tmp$fit)
+grid.df$pred.gam.se <- as.numeric(tmp$se.fit)
+```
+```{r plot-gam }
+#-- plot
+grid.gam <- grid
+values(grid.gam) <- grid.df$pred.gam
+plot(grid.gam, col = rainbow(100), main="GAM prediction"); grid()
+points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
+#       pch=16,
+       col=ifelse(cfaq$resid.gam < 0, "red", "green"),
+       cex=2*abs(cfaq$resid.gam)/max(abs(cfaq$resid.gam)),
+                                     pch=21,
+                                     bg = adjustcolor("black", alpha.f = 0.1),
+                                     #col = "black",
+                                     #cex = 0.9,
+                                     lwd = 0.5)
+```
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- How well does the GAM trend surface fit the points? Are there obvious problems?
+
+```{ r ans-06}
+[click in this cell and type your answer here]
+```
+```{r plot-gam-uncertainty }
+#- standard errors of prediction
+grid.gam.se <- grid
+values(grid.gam.se) <- grid.df$pred.gam.se
+plot(grid.gam.se, main="GAM prediction standard error",
+     col=cm.colors(64))
+grid()
+points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1], pch=16,
+       col="grey")
+```
+
+We see our GAM standard errors follow a similar pattern to the polynomial surfaces with concentrations higher along the edges but what we really want to know is where the GAM surface differs from the traditional parametric
+
+```{r plot-diff-gam-2nd-ols}
+summary(grid.df$diff.gam.ols <- grid.df$pred.gam - grid.df$ts2.fit)
+
+grid.diff.gam.ols <- grid
+values(grid.diff.gam.ols) <- grid.df$diff.gam.ols
+plot(grid.diff.gam.ols,
+     main="Difference (GAM - 2nd order trend surface) predictions, [m]",
+     col=topo.colors(64))
+grid()
+```
+
+Here the positive differences are where the GAM predicts higher values than the trend surface.
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- Where are the largest differences between the GAM and 2nd order OLS trend surface predictions? Explain why, considering how the two surfaces are computed.
+
+```{ r ans-07}
+[click in this cell and type your answer here]
+```
+
+## 2. Thin-plate spline interpolation
+
+Thin-plate splines are equivalent to a _thin and flexible_ plate warped to fit a dataset. We can do this with a single _plane_ surface similar to a 1st-degree polynomial all the way through to an extremely supple surface that perfectly fit every observation.
+
+Generally we choose a balanced approach because overfitting introduces noise.
+
+```{r setup-tps }
+#-- set up thin plate spline
+cfaq.tps <- cfaq[, c("X","Y", "waterLevel")]
+cfaq.tps$coords <- matrix(c(cfaq.tps$X, cfaq.tps$Y), byrow=F, ncol=2)
+str(cfaq.tps$coords)
+```
+
+```{r tps-fields }
+surf.1 <- fields::Tps(cfaq.tps$coords, cfaq.tps$waterLevel)
+```
+
+```{r tps-summary}
+summary(surf.1)
+```
+
+```{r tps-grid }
+#-- predict over the study area
+grid.coords.m <- as.matrix(grid.df[, c("X", "Y")], ncol=2)
+str(grid.coords.m)
+```
+
+```{r predict-tps }
+surf.1.pred <- predict.Krig(surf.1, grid.coords.m)
+summary(grid.df$pred.tps <- as.numeric(surf.1.pred))
+```
+
+```{r tps-residuals-summarize }
+#-- compute and summarize residuals
+grid.tps <- grid
+values(grid.tps) <- surf.1.pred
+tmp <- extract(grid.tps, st_coordinates(cfaq.sf))
+#names(tmp)
+
+summary(cfaq.sf$resid.tps <- (cfaq$waterLevel - tmp$waterLevel))
+```
+
+```{r hist-tps-residuals }
+#- histogram of the residuals
+hist(cfaq.sf$resid.tps, main="Thin-plate spline residuals", breaks=16)
+rug(cfaq.sf$resid.tps)
+```
+
+```{r plot-tps }
+#- plot
+plot(grid.tps, col = rainbow(100),
+     main = "2D Thin-plate spline surface")
+points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
+       #       pch=16,
+       col=ifelse(cfaq.sf$resid.tps < 0, "red", "green"), #"black", "grey"),
+       cex=2*abs(cfaq.sf$resid.tps)/max(abs(cfaq.sf$resid.tps)),
+       pch=21,
+       bg = adjustcolor("black", alpha.f = 0.1),
+       #col = "black",
+       #cex = 0.9,
+       lwd = 0.5)
+```
+
+As with the other interpolation plots; the red and green illustrate positive and negative errors with size representative of magnitude. Notice how closely the surface fits the points.
+
+Similarly; what we really want to know is where the thin-plate spline differs from the GAM surface.
+
+```{r r plot-diff-tps-gam}
+#- show the surface
+grid.diff.tps.gam <- grid
+grid.diff.tps.gam <- grid.tps - grid.gam
+values(grid.diff.tps.gam) <- (values(grid.tps) - values(grid.gam))
+plot(grid.diff.tps.gam,
+     col = topo.colors(64),
+     main = "Thin-plate spline less GAM fits, [m]",
+     xlab = "X", ylab = "Y")
+```
+
+$\color{green}{\text{\textbf{A BREATHER}}}$: 
+
+Before we continue onto the next Notebook and Generalized Least Squares; we might want to take a break and possibly understand why we would want to go further than this pretty good surface!
+
+One of the principles of Spatial Data Science is; **data is spatially autocorrelated**. Patterns and particularly residuals (errors) have a spatial structure / are connected.
+
+In other words; **_'everything is related to everything else, but near things are more related than distant things'_** - [The First Law of Geography, according to Waldo Tobler](https://en.wikipedia.org/wiki/Tobler%27s_first_law_of_geography#cite_note-1)
+
+We can model the spatial structure of residuals with a **variogram**; and then use this model to refine a trend surface with Generalized Least Squares.
+
+Recall our formula for a 1st- (with more degrees of freedom for the  2nd-) order surface;
+
+$$
+    Z = 𝜷_0 + 𝜷_1x + 𝜷_2y + ϵ   
+$$
+
+In effect we do away with the broad $ϵ$ term _---applied to the entire study area---_ and introduce local terms to mininize the overall error
+
+```{r emphirical-variogram}
+#- emphirical variogram
+cfaq$fit.ts2 <- fitted(model.ts2)
+cfaq.sf$fit.ts2 <- fitted(model.ts2)
+cfaq$res.ts2 <- residuals(model.ts2)
+cfaq.sf$res.ts2 <- residuals(model.ts2)
+```
+
+```{r plot-variogram-fit}
+vr.c <- variogram(res.ts2 ~ 1, loc = cfaq.sf, cutoff = 50000, cloud = T)
+vr <- variogram(res.ts2 ~ 1, loc = cfaq.sf, cutoff = 50000)
+p1 <- plot(vr.c, col = "blue", pch = 20, cex = 0.5,
+           xlab = "separation [m]", ylab = "semivariance [m^2]")
+p2 <- plot(vr, plot.numbers = T, col = "blue", pch = 20, cex = 1.5,
+           xlab = "separation [m]", ylab = "semivariance [m^2]")
+print(p1, split = c(1,1,2,1), more = T)
+print(p2, split = c(2,1,2,1), more = F)
+```
+
+<div class="alert alert-block alert-info"><b> </b> The emphrical variogram is characterised by three parameters. Here we scale the values by looking at the graph. Later we precisely model them. </div>
+
+- $c_0$ **the nugget**: the semivariance at zero.  
+
+- $c$ **the sill**: the maximum variance when point-pairs are widely spaced.
+
+- $a$ **the range**: the seperation where there is no more spatial autocorrelation. i.e.: where the semivariance reaches **the sill**.
+
+$\color{red}{\text{\textbf{QUESTION}}}$: 
+- What are the estimated sill, range, and nugget of this variogram?
+
+```{ r ans-07}
+[click in this cell and type your answer here]
+```
+
