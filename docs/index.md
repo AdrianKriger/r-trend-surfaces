@@ -9,13 +9,13 @@ permalink: /
 # Trend Surface Analysis with R (Cape Flats Aquifer)
 {: .fs-9 }
 
-In this set of exercises, we will explore the concepts and applications of trend surface analysis, focusing on 1st and 2nd order trend surfaces and empirical smooth functions. We also delve into the various flavors of Kriging; a powerful geostatistical interpolation method.
+In this set of exercises, we explore the concepts and applications of trend surface analysis, focusing on 1st and 2nd order trend surfaces and empirical smooth functions. We also delve into the various flavors of Kriging; a powerful geostatistical interpolation method.
 
 The goal of Trend surface analysis is to **help us identify and model the underlying trend or pattern in spatial data, while interpolation techniques enable us to estimate values at unsampled locations based on nearby data points**. Through this hands-on exercise and a real-world example, you will gain a deeper understanding of spatial interpolation techniques and their applications in various fields, which includes geology, environmental studies, agriculture, urban planning, remote sensing, climate studies, geomorphology, archaelogy, health studies and seismology.
 
-We will start by understanding the principles of trend surface analysis, a technique used to model spatial trends and variations in data. You will learn how to fit **1st and 2nd order trend surfaces** to a dataset and interpret the results to identify underlying patterns.
+We start by understanding the principles of trend surface analysis, a technique used to model spatial trends and variations in data. You will learn how to fit **1st and 2nd order trend surfaces** to a dataset and interpret the results to identify underlying patterns.
 
-Next, we'll explore **empirical smooth functions** to analyze spatial data. You will be introduced to different smoothing techniques, like the generalized additive model and minimum-curvature surface (thin-plate spline) to reveal trends and patterns in noisy datasets.
+Next, we explore **empirical smooth functions** to analyze spatial data. You will be introduced to different smoothing techniques, like the generalized additive model and minimum-curvature surface (thin-plate spline) to reveal trends and patterns in noisy datasets.
 
 We end with Kriging. Kriging is a geostatistical interpolation method that provides optimal estimates of unknown values based on spatial autocorrelation. We will cover **Ordinary Kriging, Generalized Least Squares-Regression Kriging and Universal Kriging**, understanding their assumptions, implementation, and the benefits they offer in different scenarios.
 
