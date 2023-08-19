@@ -461,7 +461,7 @@ names(grid.sf)
 
 ```{r uk }
 #- uk
-k.uk <- krige(waterLevel ~ E + N + I(E^2) + I(N^2) + I(E*N), locations = aq.sf, newdata = grid1km.sf, model=vr.m.f)
+k.uk <- krige(waterLevel ~ E + N + I(E^2) + I(N^2) + I(E*N), locations = aq.sf, newdata = grid.sf, model=vr.m.f)
 ```
 
 ```{r plot-uk }
