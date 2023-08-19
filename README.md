@@ -1,4 +1,4 @@
-# Trend surfaces using R (Cape Flats Aquifer)
+# Trend Surface Analysis with R (Cape Flats Aquifer)
 
 **Welcome to this Trend Surface Analysis with R Tutorial!** 
 
