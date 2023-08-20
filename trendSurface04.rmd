@@ -426,7 +426,7 @@ Universal Kriging (UK) is an extension of OK. UK does not follow a step-wise pro
 
 UK bypasses the GLS and predicts a surface from a 2nd-order OLS. In other words the spatial structure of the residuals (the variogram) is not modeled from the GLS residuals but the 2nd-order model directly.
 
-**We start with a _clean_ slate**
+**We start with a clean slate**
 
 ```{r look }
 #- what do we have thusfar?
@@ -458,10 +458,28 @@ grid.sf$X <- st_coordinates(grid.sf)[ , "X"]
 grid.sf$Y <- st_coordinates(grid.sf)[ , "Y"]
 names(grid.sf)
 ```
+Variogram from the OLS
+```{r ols-empirical-variogram-plot}
+#- empirical variogram
+vr <- variogram(zm ~ E + N + I(E^2) + I(N^2) + I(E*N), locations = aq.sf, cutoff = 50000)
+#- plot
+plot(vr, plot.numbers = TRUE, main = "Residuals from 2nd-order OLS trend surface", xlab = "separation (m)", ylab = "semivariance (m^2)")
+```
+
+```{r ols-variogram-model}
+#- variogram model 
+#(vr.m.f <- fit.variogram(vr, vgm(35, "Exp", 22000/3, 0)))
+vr.m.f <- fit.variogram(vr, vgm(psill=200, model="Mat", range=15000)#, nugget=25)
+```
+
+```{r plot-ols-variogram-model}
+#- plot
+plot(vr, plot.numbers=TRUE, xlab="separation (km)", ylab="semivariance (m^2)", model=vr.m.f, main="Fitted variogram model, residuals from 2nd-order OLS trend surface")
+
 
 ```{r uk }
 #- uk
-k.uk <- krige(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), locations = cfaq.sf, newdata = grid.sf, model=vr.m.f)
+k.uk <- krige(waterLevel ~ E + N + I(E^2) + I(N^2) + I(E*N), locations = aq.sf, newdata = grid1km.sf, model=vr.m.f)
 ```
 
 ```{r plot-uk }
@@ -510,7 +528,7 @@ hist(grid.diff.uk.rkgls, main = "UK - GLS-RK prediction differences", freq = FAL
 
 ```{r plot-diff-uk-minus-gls-rk}
 #- plot uk minus gls-rk diff surface
-plot(grid1km.diff.uk.rkgls, sub="UK - GLS-RK predictions", main="difference, m", xlab="East", ylab="North", col = topo.colors(64))
+plot(grid.diff.uk.rkgls, sub="UK - GLS-RK predictions", main="difference, m", xlab="East", ylab="North", col = topo.colors(64))
 ```
 
 $\color{red}{\text{\textbf{QUESTION}}}$: 
