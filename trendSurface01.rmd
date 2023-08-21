@@ -1,8 +1,11 @@
 ---
 title: "Trend Surface Analysis with R (part I)"
-output: html_notebook
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  html_notebook: default
 ---
-##-- arkriger: August 2023
 
 This Notebook (the first-of-four) serves to introduce a user to a series of exercises focused on *higher order* **_Trend Surface analysis with R_**.
 
@@ -13,8 +16,7 @@ It consists of two sections:
 	a) Voronoi
 	b) Inverse Distance Weighting
 
-$\color{red}{\text{\textbf{REQUIRED}}}$: 
-**You are required to insert your outputs and any comment into this document.** The document you submit should therefore contain the existing text in addition to:
+<span style="color: red;">**REQUIRED:** You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:</span>
 
 - Plots and other outputs from executing the code chunks
 - Discussion of your plots and other outputs as well as conclusions reached.
@@ -25,7 +27,7 @@ options(prompt="> ", continue="+ ", digits=3, width=70, show.signif.stars=F, rep
 rm(list=ls())
 
 # Install necessary packages: You only need to run this part once
-install.packages(c("sf", "gstat", "stars"))
+#install.packages(c("sf", "gstat", "stars"))
 
 library(sf)    # 'simple features' representations of spatial objects
 library(gstat) # geostatistics
@@ -35,7 +37,7 @@ library(stars) # gridded data structures ("rasters")
 
 ```{r read-dataset }
 #-- read
-file = 'cptFlatsAquifer_watertable4.txt'
+file = 'C:/Users/T0084076/Downloads/cptFlatsAquifer_watertable.txt'
 ```
 
 ```{r import }
@@ -47,9 +49,9 @@ cfaq <- read.csv(file, header = 1, sep = ',', dec = '.')
 #-- look
 head(cfaq ,3)
 ```
+<span style="color: orange;">**QUESTION:**</span>
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- What is the purpose of producing a map of the the elevation of the top of the aquifer over the study area? In other words, who would use the map and for what purpose?
+- **What is the purpose of producing a map of the the elevation of the top of the aquifer over the study area? In other words, who would use the map and for what purpose?**
 
 ```{ r ans-01}
 [click in this cell and type your answer here]
@@ -103,15 +105,15 @@ range(cfaq.sf$elevation); diff(range(cfaq.sf$elevation))
 range(cfaq.sf$depth); diff(range(cfaq.sf$depth))
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
+<span style="color: orange;">**QUESTION:**</span>
 
-- How many observations are there? What was recorded at each point?
+- **How many observations are there? What was recorded at each point?**
 
 ```{ r ans-02}
 [click in this cell and type your answer here]
 ```
 
-- What are the geographic limits of the study area? What is its area, in km2?
+- **What are the geographic limits of the study area? What is its area, in km2?**
 
 ```{ r ans-03}
 [click in this cell and type your answer here]
@@ -149,10 +151,9 @@ plot(#st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
 grid()
 title("Elevation of aquifer, m")
 ```
+<span style="color: orange;">**QUESTION:**</span>
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-
-- Describe the spatial pattern of the elevations. Do nearby points have similar values? Is there a trend across the whole area? Are there local exceptions to the trend?
+- **Describe the spatial pattern of the elevations. Do nearby points have similar values? Is there a trend across the whole area? Are there local exceptions to the trend?**
 
 ```{ r ans-02}
 [click in this cell and type your answer here]
@@ -165,7 +166,7 @@ Before we delve into higher order interpolation techniques; let us first explore
 a) Thiessen Polygons
 b) Inverse Distance Weighting (IDW)
 
-$\color{red}{\text{\textbf{REMEMBER:}}}$: our goal is to estimate values where non exist. And depending on the application (and the data we have access to) higher order methods might not be necessary!
+<span style="color: red;">**REMEMBER:**</span> our goal is to estimate values where non exist. And depending on the application (and the data we have access to) higher order methods might not be necessary!
 
 ### a) Thiessen Polygons
 
@@ -248,8 +249,8 @@ for (idp in idp_values) {
 num_plots <- length(idp_values)
 par(mfrow = c(2, 2))  # Arrange plots in 2 rows and 2 columns
 # Set the size of the individual plots
-plot_width <- 9
-plot_height <- 9
+plot_width <- 7
+plot_height <- 7
 
 # Set the margin and space between plots
 margin_size <- 0.5
@@ -292,24 +293,26 @@ for (i in 1:num_plots) {
 par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
+<span style="color: orange;">**QUESTION:**</span>
 
-- Why do we need interpolation methods that go deeper / further than the two presented here?
+- **Why do we need interpolation methods that go deeper / further than the two presented here?**
 
 ```{ r ans-03}
 [click in this cell and type your answer here]
 ```
 
-- Comment on the quality of the IDW
-$\color{blue}{\text{\textbf{Hint}}}$: Think about the subjectivity of the power function and what this means. Also consider what happens when we overlay the voronoi with the various idw interpolations. What does this mean?
+- **Comment on the quality of the IDW**
+
+> <span style="color: blue;">**HINT:**</span> Think about the subjectivity of the power function and what this means. Also consider what happens when we overlay the voronoi with the various idw interpolations. What does this mean?
+
 
 ```{r plot-idw-voronoi }
 # Plot IDW results with overlay of original points
 num_plots <- length(idp_values)
 par(mfrow = c(2, 2))  # Arrange plots in 2 rows and 2 columns
 # Set the size of the individual plots
-plot_width <- 9
-plot_height <- 9
+plot_width <- 7
+plot_height <- 7
 
 # Set the margin and space between plots
 margin_size <- 0.5
@@ -350,13 +353,10 @@ par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
 ```{ r ans-04}
 [click in this cell and type your answer here]
 ```
-- How can the quality of the IDW improve?
 
-```{ r ans-05}
-[click in this cell and type your answer here]
-```
-- How can the quality of the IDW improve?
-> $\color{blue}{\text{\textbf{Hint}}}$: Consider the location and density of the sample (input) points
+- **How can the quality of the IDW improve?**
+
+> > <span style="color: blue;">**HINT:**</span> Consider the location and density of the sample (input) points
 
 ```{ r ans-05}
 [click in this cell and type your answer here]
