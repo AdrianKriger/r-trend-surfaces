@@ -1,4 +1,6 @@
 ---
+##-- arkriger: August 2023
+#- https://stackoverflow.com/questions/47806200/create-a-comment-box-using-rmarkdown-html-file
 title: "Trend Surface Analysis with R (part I)"
 output:
   pdf_document: default
@@ -6,6 +8,18 @@ output:
     df_print: paged
   html_notebook: default
 ---
+
+<style> 
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+margin-left: 25px;
+border-radius: 5px;
+font-style: italic;
+}
+
+</style>
 
 This Notebook (the first-of-four) serves to introduce a user to a series of exercises focused on *higher order* **_Trend Surface analysis with R_**.
 
@@ -15,20 +29,26 @@ It consists of two sections:
 2. Deterministic Interpolation Techniques
 	a) Voronoi
 	b) Inverse Distance Weighting
+	
+<div class="alert alert-danger">
+  <strong>REQUIRED!</strong> 
+  
+You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:
 
-<span style="color: red;">**REQUIRED:** You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:</span>
+ - Plots and other outputs from executing the code chunks
+ - Discussion of your plots and other outputs as well as conclusions reached.
+ - This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
+</div>
 
-- Plots and other outputs from executing the code chunks
-- Discussion of your plots and other outputs as well as conclusions reached.
-- This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
-
-```{r install }
+```{r install-load }
+#- options
 options(prompt="> ", continue="+ ", digits=3, width=70, show.signif.stars=F, repr.plot.width=7, repr.plot.height=7)
 rm(list=ls())
 
 # Install necessary packages: You only need to run this part once
 #install.packages(c("sf", "gstat", "stars"))
 
+#- load
 library(sf)    # 'simple features' representations of spatial objects
 library(gstat) # geostatistics
 library(stars) # gridded data structures ("rasters")
@@ -49,13 +69,13 @@ cfaq <- read.csv(file, header = 1, sep = ',', dec = '.')
 #-- look
 head(cfaq ,3)
 ```
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **What is the purpose of producing a map of the the elevation of the top of the aquifer over the study area? In other words, who would use the map and for what purpose?**
+- **Question 1.** What is the purpose of producing a map of the the elevation of the top of the aquifer over the study area? In other words, who would use the map and for what purpose?
 
-```{ r ans-01}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 1. click in this cell and type your answer here. your answer must be between these [] brackets ]
+</p>
 
 ```{r str-cfaq }
 str(cfaq)
@@ -105,19 +125,20 @@ range(cfaq.sf$elevation); diff(range(cfaq.sf$elevation))
 range(cfaq.sf$depth); diff(range(cfaq.sf$depth))
 ```
 
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **How many observations are there? What was recorded at each point?**
+- **Question 2.** How many observations are there? What was recorded at each point?
 
-```{ r ans-02}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 2. click in this cell and type your answer here. your answer must be between these [] brackets ]
+</p>
 
-- **What are the geographic limits of the study area? What is its area, in km2?**
+- **Question 3.** What are the geographic limits of the study area? What is its area, in km2?
 
-```{ r ans-03}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 3. click in this cell and type your answer here. your answer must be between these [] brackets ]
+</p>
+
 ```{r plot-names }
 plot(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
      #plot(st_coordinates(cfaq.sf)[,1] ~ st_coordinates(cfaq.sf)[,2],
@@ -131,6 +152,7 @@ text(st_coordinates(cfaq.sf)[,1], st_coordinates(cfaq.sf)[,2],
 #text(cfaqN, round(aq$z), adj=c(0.5,0.5))
 title("Elevation of aquifer, m")
 ```
+
 ```{r plot-elevation }
 plot(#st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
   st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
@@ -151,13 +173,14 @@ plot(#st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
 grid()
 title("Elevation of aquifer, m")
 ```
-<span style="color: orange;">**QUESTION:**</span>
 
-- **Describe the spatial pattern of the elevations. Do nearby points have similar values? Is there a trend across the whole area? Are there local exceptions to the trend?**
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-02}
-[click in this cell and type your answer here]
-```
+- **Question 4.** Describe the spatial pattern of the elevations. Do nearby points have similar values? Is there a trend across the whole area? Are there local exceptions to the trend?
+
+<p class="comment">
+[ Answer 4. click in this cell and type your answer here. your answer must be between these [] brackets ]
+</p>
 
 ## 2. Deterministic Interpolation Techniques
 
@@ -166,7 +189,9 @@ Before we delve into higher order interpolation techniques; let us first explore
 a) Thiessen Polygons
 b) Inverse Distance Weighting (IDW)
 
-<span style="color: red;">**REMEMBER:**</span> our goal is to estimate values where non exist. And depending on the application (and the data we have access to) higher order methods might not be necessary!
+<div class="alert alert-danger">
+  <strong>REMEMBER!</strong> our goal is to estimate values where non exist. And depending on the application (and the data we have access to) higher order methods might not be necessary!
+</div>
 
 ### a) Thiessen Polygons
 
@@ -293,18 +318,19 @@ for (i in 1:num_plots) {
 par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
 ```
 
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **Why do we need interpolation methods that go deeper / further than the two presented here?**
+- **Question 5.** Why do we need interpolation methods that go deeper / further than the two presented here?
 
-```{ r ans-03}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 5. click in this cell and type your answer here. your answer must be between these [] brackets ]
+</p>
 
-- **Comment on the quality of the IDW**
+- **Question 6.** Comment on the quality of the IDW
 
-> <span style="color: blue;">**HINT:**</span> Think about the subjectivity of the power function and what this means. Also consider what happens when we overlay the voronoi with the various idw interpolations. What does this mean?
-
+<div class="alert alert-info">
+  <strong>HINT!</strong> Think about the subjectivity of the power function and what this means. Also consider what happens when we overlay the voronoi with the various idw interpolations. What does this mean?
+</div>
 
 ```{r plot-idw-voronoi }
 # Plot IDW results with overlay of original points
@@ -350,14 +376,16 @@ for (i in 1:num_plots) {
 par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
 ```
 
-```{ r ans-04}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 6. click in this cell and type your answer here. your answer must be between these [] brackets ]
+</p>
 
-- **How can the quality of the IDW improve?**
+- **Question 7.** How can the quality of the IDW improve?
 
-> > <span style="color: blue;">**HINT:**</span> Consider the location and density of the sample (input) points
+<div class="alert alert-info">
+  <strong>HINT!</strong> Consider the location and density of the sample (input) points
+</div>
 
-```{ r ans-05}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 7. click in this cell and type your answer here. your answer must be between these [] brackets ]
+</p>
