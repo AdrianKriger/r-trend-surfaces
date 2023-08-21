@@ -1,8 +1,9 @@
 ---
+##-- arkriger: August 2023
+
 title: "Trend Surface Analysis with R (part II)"
 output: html_notebook
 ---
-##-- arkriger: August 2023
 
 This Notebook (the second-of-four) serves to continue a journey through a series of exercises focused on *higher order* **_Trend Surface analysis with R_**.
 
@@ -13,14 +14,13 @@ It consists of two sections:
 	b) Second-order trend surfaces
 2. Trend Surface Prediction
 
-$\color{red}{\text{\textbf{REQUIRED}}}$: 
-**You are required to insert your outputs and any comment into this document.** The document you submit should therefore contain the existing text in addition to:
+<span style="color: red;">**REQUIRED:** You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:</span>
 
 - Plots and other outputs from executing the code chunks
 - Discussion of your plots and other outputs as well as conclusions reached.
 - This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
 
-1. Ordinary Least Square
+## 1. Ordinary Least Square
 From the previous trendSurface01 Notebook we are aware our data suggests a trend surface; a water level as some smooth function of coordinates. A polynomial function of the coordinates.
 
 The higher the degree of the polynomial (1st, 2nd, 3rd, etc.) the more the surface matches the original data. We should however take care.
@@ -32,24 +32,28 @@ options(prompt="> ", continue="+ ", digits=3, width=70, show.signif.stars=F, rep
 rm(list=ls())
 
 # Install necessary packages: You only need to run this part once
-# Install necessary packages: You only need to run this part once
 ##- install.packages(c("sf", "gstat", "units", "terra"))
 
-#library(repr)
 library(sf) # 'simple features' representations of spatial objects
 library(gstat) # geostatistics
 library(units) # units of measure
 library(terra) # gridded data structures ("rasters")
 ```
-**due to the limitation of the lm function (the linear regression model) in R we work with the UTM coordinates as a field in a data.frame and NOT spatial objects.** i.e.: we drop the units.
+**Due to the limitation of the lm function (the linear regression model) in R we work with the UTM coordinates as a field in a data.frame and NOT spatial objects.** i.e.: we drop the units.
 
 ```{r read-dataset }
 #-- read
-file = 'cptFlatsAquifer_watertable4.txt'
+file = 'C:/Users/T0084076/Downloads/cptFlatsAquifer_watertable.txt'
 ```
 ```{r import }
 #-- import
 cfaq <- read.csv(file, header = 1, sep = ',', dec = '.')
+#- set as a spatial feature with xy coords an existing projection
+cfaq.sf <- st_as_sf(cfaq, coords=c("long", "lat"), crs = 4326) #wgs84
+#- transform to local crs
+cfaq.sf <- st_transform(cfaq.sf, crs = 32734) #utm 34s
+cfaq$X <- st_coordinates(cfaq.sf)[, "X"]
+cfaq$Y <- st_coordinates(cfaq.sf)[, "Y"]
 ```
 
 ```{r look }
@@ -102,8 +106,9 @@ We see amoung the results of our **_fit_** is an Intercept ---an elevation--- an
 
 In other words for every 500-m east and west we increase by 0.00205m and 0.00245m respectively.
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- What is the equation of the trend surface? How does elevation vary with the E and N coördinates? Is the relation statistically-significant? How much of the total variability does it explain? Are all the coefficients statistically-significant?
+<span style="color: orange;">**QUESTION:**</span>
+
+- **What is the equation of the trend surface? How does elevation vary with the E and N coördinates? Is the relation statistically-significant? How much of the total variability does it explain? Are all the coefficients statistically-significant?**
 
 ```{ r ans-01}
 [click in this cell and type your answer here]
@@ -128,8 +133,9 @@ range(res.ts1)
 max(abs(res.ts1))/median(cfaq$waterLevel)*100
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- What is the range of residuals? How does this compare with the target variable? How are the residuals distributed in feature space?
+<span style="color: orange;">**QUESTION:**</span>
+
+- **What is the range of residuals? How does this compare with the target variable? How are the residuals distributed in feature space?**
 
 ```{ r ans-02}
 [click in this cell and type your answer here]
@@ -137,8 +143,8 @@ $\color{red}{\text{\textbf{QUESTION}}}$:
 
 **Two diagnostic `plot()`s of a `linear model` that deserve attention are:**
 
-> i) residuals vs fitted values;  
-> ii) quantile-quantile ('QQ') plot of the standardized residuals. The QQ plot is significant and shows the standard residuals and the expected residuals (if the residuals were normally distributed) _---it should be a stright line_.
+   i) residuals vs fitted values;  
+  ii) quantile-quantile ('QQ') plot of the standardized residuals. The QQ plot is significant and shows the standard residuals and the expected residuals (if the residuals were normally distributed) _---it should be a stright line_.
 
 ```{r diagnostic-1st-ols-model }
 #- diagnostic plot of linear model
@@ -146,12 +152,13 @@ par(mfrow=c(1,2))
 plot(model.ts1, which=1:2)
 par(mfrow=c(1,1))
 ```
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Does this model meet the feature-space requirements for a valid linear model?
+<span style="color: orange;">**QUESTION:**</span>
 
-> a. No relation between the fitted values and the residuals  
-> b. Equal spread of residuals across the range of fitted values  
-> c. Normally-distributed standardized residuals
+- **Does this model meet the feature-space requirements for a valid linear model?**
+
+    a. No relation between the fitted values and the residuals  
+    b. Equal spread of residuals across the range of fitted values  
+    c. Normally-distributed standardized residuals
 
 ```{ r ans-03}
 [click in this cell and type your answer here]
@@ -169,8 +176,9 @@ plot(cfaq$Y ~ cfaq$X,
 grid()
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Is there a spatial pattern to the residuals? Is there local spatial correlation without an overall pattern? What does this imply about the suitability of a first-order trend surface?
+<span style="color: orange;">**QUESTION:**</span>
+
+- **Is there a spatial pattern to the residuals? Is there local spatial correlation without an overall pattern? What does this imply about the suitability of a first-order trend surface?**
 
 ```{ r ans-04}
 [click in this cell and type your answer here]
@@ -207,8 +215,9 @@ model.ts2 <- lm(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), data=drop_units(c
 summary(model.ts2)
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- How much of the variance does the second-order surface explain?
+<span style="color: orange;">**QUESTION:**</span>
+
+- **How much of the variance does the second-order surface explain?**
 
 ```{ r ans-05}
 [click in this cell and type your answer here]
@@ -220,8 +229,9 @@ $\color{red}{\text{\textbf{QUESTION}}}$:
 #- compare the 1st and 2nd order models statistically
 anova(model.ts1, model.ts2)
 ```
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Is the second-order surface statistically superior to the first-order surface?
+<span style="color: orange;">**QUESTION:**</span>
+
+- **Is the second-order surface statistically superior to the first-order surface?**
 
 ```{ r ans-06}
 [click in this cell and type your answer here]
@@ -238,38 +248,46 @@ hist(res.ts2, breaks=16, main="Residuals from 2nd-order trend", xlab="residual e
 rug(res.ts2)
 max(abs(res.ts2))/median(cfaq$waterLevel)
 ```
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- What is the range of residuals? How does this compare with the target variable? How are they distributed in feature space? How do these compare with the residuals from the first-order surface?
+<span style="color: orange;">**QUESTION:**</span>
+
+- **What is the range of residuals? How does this compare with the target variable? How are they distributed in feature space? How do these compare with the residuals from the first-order surface?**
 
 ```{ r ans-07}
 [click in this cell and type your answer here]
 ```
 
-```{r diagnostic-2nd-ols-model
+```{r diagnostic-2nd-ols-model }
 #- diagnostic plots
 par(mfrow=c(1,2))
 plot(model.ts2, which=1:2)
 par(mfrow=c(1,1))
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Does this model meet the feature-space requirements for a valid linear model?
+<span style="color: orange;">**QUESTION:**</span>
 
-> a. No relation between the fitted values and the residuals  
-> b. Equal spread of residuals across the range of fitted values  
-> c. Normally-distributed standardized residuals
+- **Does this model meet the feature-space requirements for a valid linear model?**
+
+    a. No relation between the fitted values and the residuals  
+    b. Equal spread of residuals across the range of fitted values  
+    c. Normally-distributed standardized residuals
 
 ```{ r ans-08}
 [click in this cell and type your answer here]
 ```
-**Identify the largest overprediction that do not fit the normal Q-Q plot**
+
+- **Identify the largest overprediction that do not fit the normal Q-Q plot**
+
+```{ r ans-09}
+[click in this cell and type your answer here]
+```
 
 Looking at the QQ plot above we can take a value of 1 standard deviation to find the largest negative residuals.
 
-```{r summarize-standard-2nd-ols-model
+```{r summarize-standard-2nd-ols-model }
 summary(sres.ts2 <- rstandard(model.ts2))
 ```
-```{r select-std-deviation}
+
+```{r select-std-deviation }
 (ix <- which(sres.ts2 < -2))
 ```
 
@@ -299,8 +317,9 @@ text(cfaq[ix, "X"] ~ cfaq[ix, "Y"],
 grid()
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Is there an overall pattern to the residuals? Is there local spatial correlation without an overall pattern? Are the largest model residuals clustered? Does there seem to be any anisotropy (stronger spatial dependence in one direction than the orthogonal direction)?
+<span style="color: orange;">**QUESTION:**</span>
+
+- **Is there an overall pattern to the residuals? Is there local spatial correlation without an overall pattern? Are the largest model residuals clustered? Does there seem to be any anisotropy (stronger spatial dependence in one direction than the orthogonal direction)?**
 
 ```{ r ans-09}
 [click in this cell and type your answer here]
@@ -405,16 +424,19 @@ points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1], pch=21,
       lwd = 0.5)
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- -  How well does the trend surface fit the points? Are there obvious problems?
+<span style="color: orange;">**QUESTION:**</span>
+
+- **How well does the trend surface fit the points? Are there obvious problems?**
 
 ```{ r ans-10}
 [click in this cell and type your answer here]
 ```	   
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Comment on how the 1st- and 2nd-order surface predictions fulfill thier definitions.
-> $\color{blue}{\text{\textbf{Hint}}}$: Look at the two surfaces. Is the 1st-order a plane? In which direction does it slope? What is the shape of the 2nd-order surface?
+<span style="color: orange;">**QUESTION:**</span>
+
+- **Comment on how the 1st- and 2nd-order surface predictions fulfill thier definitions.**
+
+    <span style="color: blue;">**HINT:**</span> Look at the two surfaces. Is the 1st-order a plane? In which direction does it slope? What is the shape of the 2nd-order surface?
 
 ```{ r ans-11}
 [click in this cell and type your answer here]
@@ -428,8 +450,8 @@ summary(pred.ts2)
 
 ```{r summarize-griddf }
 summary(grid.df)
-
-```{r 2nd-ols-prediction-to-griddf}
+```
+```{r scnd-ols-prediction-to-griddf }
 grid.df[, 3:5] <- pred.ts2
 names(grid.df)[3:5] <- c("ts2.fit", "ts2.lwr", "ts2.upr")
 summary(grid.df)
@@ -456,15 +478,17 @@ grid()
 points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1], pch=16,col = "gray")
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- What are the units of prediction interval? How large are they? How does this compare to the variable we are trying to predict?
+<span style="color: orange;">**QUESTION:**</span>
+
+- **What are the units of prediction interval? How large are they? How does this compare to the variable we are trying to predict?**
 
 ```{ r ans-12}
 [click in this cell and type your answer here]
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Describe the spatial pattern of the prediction interval.
+<span style="color: orange;">**QUESTION:**</span>
+
+- **Describe the spatial pattern of the prediction interval.**
 
 ```{ r ans-13}
 [click in this cell and type your answer here]
