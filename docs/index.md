@@ -3,7 +3,6 @@ layout: default
 title: Home
 nav_order: 1
 description: "Trend Surface Analysis with R."
-permalink: /
 ---
 
 # Trend Surface Analysis with R (Cape Flats Aquifer)
