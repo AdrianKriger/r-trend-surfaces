@@ -43,7 +43,7 @@ library(terra) # gridded data structures ("rasters")
 
 ```{r read-dataset }
 #-- read
-file = 'C:/Users/T0084076/Downloads/cptFlatsAquifer_watertable.txt'
+file = 'cptFlatsAquifer_watertable.txt'
 ```
 ```{r import }
 #-- import
