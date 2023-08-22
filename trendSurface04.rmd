@@ -201,12 +201,8 @@ intervals(model.ts2.gls, level=0.90)
 summary(res.ts2.gls <- residuals(model.ts2.gls))
 ```
 
+
 ```{r gls-2nd-residuals-summary }
-summary(res.ts2)
-```
-
-
-```{r 2nd-ols-res-summary }
 res.ts2 <- set_units(residuals(model.ts2), m)
 summary(res.ts2)
 ```
@@ -490,8 +486,14 @@ str(cfaq.sf$geometry)
 str(st_coordinates(cfaq.sf))
 ```
 
-```{r variables-to-grid }
-#- variables to grid
+```{r grid-to-sf}
+grid.sf$X <- st_coordinates(grid.sf)[ , "X"]
+grid.sf$Y <- st_coordinates(grid.sf)[ , "Y"]
+names(grid.sf)
+```
+
+```{r variables-to-cfaq }
+#- variables to cfaq
 cfaq.sf$X <- st_coordinates(cfaq.sf)[ , "X"]
 cfaq.sf$Y <- st_coordinates(cfaq.sf)[ , "Y"]
 names(cfaq.sf)
@@ -519,8 +521,8 @@ plot(vr, plot.numbers=TRUE, xlab="separation (km)", ylab="semivariance (m^2)", m
 
 ```{r uk }
 #- uk
-k.uk <- krige(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), locations = cfaq.sf, newdata =
-                grid.sf, model=vr.m.f)
+k.uk <- krige(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), locations = cfaq.sf, 
+              newdata = grid.sf, model=vr.m.f)
 ```
 
 ```{r plot-uk }
