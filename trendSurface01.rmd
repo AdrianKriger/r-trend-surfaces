@@ -1,11 +1,10 @@
 ---
 ##-- arkriger: August 2023
-#- https://stackoverflow.com/questions/47806200/create-a-comment-box-using-rmarkdown-html-file
 title: "Trend Surface Analysis with R (part I)"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
   html_notebook: default
 ---
 
@@ -74,7 +73,7 @@ head(cfaq ,3)
 - **Question 1.** What is the purpose of producing a map of the the elevation of the top of the aquifer over the study area? In other words, who would use the map and for what purpose?
 
 <p class="comment">
-[ Answer 1. click in this cell and type your answer here. your answer must be between these [] brackets ]
+[ Answer 1. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
 ```{r str-cfaq }
@@ -130,13 +129,13 @@ range(cfaq.sf$depth); diff(range(cfaq.sf$depth))
 - **Question 2.** How many observations are there? What was recorded at each point?
 
 <p class="comment">
-[ Answer 2. click in this cell and type your answer here. your answer must be between these [] brackets ]
+[ Answer 2. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
 - **Question 3.** What are the geographic limits of the study area? What is its area, in km2?
 
 <p class="comment">
-[ Answer 3. click in this cell and type your answer here. your answer must be between these [] brackets ]
+[ Answer 3. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
 ```{r plot-names }
@@ -179,7 +178,7 @@ title("Elevation of aquifer, m")
 - **Question 4.** Describe the spatial pattern of the elevations. Do nearby points have similar values? Is there a trend across the whole area? Are there local exceptions to the trend?
 
 <p class="comment">
-[ Answer 4. click in this cell and type your answer here. your answer must be between these [] brackets ]
+[ Answer 4. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
 ## 2. Deterministic Interpolation Techniques
@@ -286,7 +285,7 @@ total_width <- plot_width * 2 + space_between_plots
 total_height <- plot_height * 2 + space_between_plots
 
 # Set par settings for plot layout
-par(mfrow = c(2, 2), mar = c(0.6, 0.6, 0.8, 0.1),#margin_size, margin_size, margin_size, margin_size),
+par(mfrow = c(2, 2), mar = c(0,0, 1, 0.1),#margin_size, margin_size, margin_size, margin_size),
     oma = c(0, 0, 0, 0), mgp = c(0.5, 0.7, 0))
 
 min.x <- floor(min(cfaq.sf$X)/1000)*1000
@@ -323,7 +322,7 @@ par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
 - **Question 5.** Why do we need interpolation methods that go deeper / further than the two presented here?
 
 <p class="comment">
-[ Answer 5. click in this cell and type your answer here. your answer must be between these [] brackets ]
+[ Answer 5. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
 - **Question 6.** Comment on the quality of the IDW
@@ -349,7 +348,7 @@ total_width <- plot_width * 2 + space_between_plots
 total_height <- plot_height * 2 + space_between_plots
 
 # Set par settings for plot layout
-par(mfrow = c(2, 2), mar = c(0.6, 0.6, 0.8, 0.1),#margin_size, margin_size, margin_size, margin_size),
+par(mfrow = c(2, 2), mar = c(0, 0, 1, 0.1),#margin_size, margin_size, margin_size, margin_size),
     oma = c(0, 0, 0, 0), mgp = c(0.5, 0.7, 0))
 
 for (i in 1:num_plots) {
@@ -377,7 +376,7 @@ par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
 ```
 
 <p class="comment">
-[ Answer 6. click in this cell and type your answer here. your answer must be between these [] brackets ]
+[ Answer 6. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
 - **Question 7.** How can the quality of the IDW improve?
@@ -387,5 +386,5 @@ par(mfrow = c(1, 1), mar = c(5.1, 4.1, 4.1, 2.1))
 </div>
 
 <p class="comment">
-[ Answer 7. click in this cell and type your answer here. your answer must be between these [] brackets ]
+[ Answer 7. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>

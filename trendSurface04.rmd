@@ -1,8 +1,22 @@
 ---
-title: "Trend Surface Analysis with R (part IV)"
-output: html_notebook
----
 ##-- arkriger: August 2023
+title: "Trend Surface Analysis with R (part IV)"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+---
+<style> 
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+margin-left: 25px;
+border-radius: 5px;
+font-style: italic;
+}
+
+</style>
 
 We end our journey through *higher order* **_Trend Surface analysis with R_** with this Notebook. Here we cover a lot of ground.
 
@@ -12,12 +26,15 @@ We end our journey through *higher order* **_Trend Surface analysis with R_** wi
 2. GLS-Regression Kriging
 3. Universal Kriging
 
-$\color{red}{\text{\textbf{REQUIRED}}}$: 
-**You are required to insert your outputs and any comment into this document.** The document you submit should therefore contain the existing text in addition to:
+<div class="alert alert-danger">
+  <strong>REQUIRED!</strong> 
+  
+You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:
 
-- Plots and other outputs from executing the code chunks
-- Discussion of your plots and other outputs as well as conclusions reached.
-- This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
+ - Plots and other outputs from executing the code chunks
+ - Discussion of your plots and other outputs as well as conclusions reached.
+ - This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
+</div>
 
 At the close of the previous Notebook we talked about **_spatial autocorrelation_**. Patterns and particularly residuals (errors) have a spatial structure / are connected.
 
@@ -59,7 +76,7 @@ We've already covered creating a 500m grid and 2nd-order prediction and interpol
 
 ```{r read-dataset }
 #-- read
-file = 'cptFlatsAquifer_watertable4.txt'
+file = 'cptFlatsAquifer_watertable.txt'
 ```
 
 ```{r import-grid-2nd-ols-gam }
@@ -100,6 +117,7 @@ pred.ts2 <- predict.lm(model.ts2,
 #-- add the three prediction fields (fit, lower, upper) to the data
 grid.df[, 3:5] <- pred.ts2
 names(grid.df)[3:5] <- c("ts2.fit", "ts2.lwr", "ts2.upr")
+values(grid) <- pred.ts2[,"fit"]
 
 #-- gam
 model.gam <- gam(waterLevel ~ s(X, Y, k = 29), data=drop_units(cfaq))
@@ -140,12 +158,13 @@ class(model.ts2.gls)
 summary(model.ts2.gls)
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- What is the range of spatial correlation of the exponential model, as estimated by GLS?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-01}
-[click in this cell and type your answer here]
-```
+- **Question 1.**  What is the range of spatial correlation of the exponential model, as estimated by GLS?
+
+<p class="comment">
+[ Answer 1. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 **Look at how the GLS and OLS coefficients differ.**
 
@@ -155,18 +174,20 @@ We work with the **Mixed GAM Computation Vehicle** `mgcv` library default smooth
 ##-- absolute values
 #- generic coef method extracts coefficients from model objects
 coef(model.ts2.gls) - coef(model.ts2)
+```
 
 ```{r summarize-gls-uncertainty-percent }
 #- percentage
 round(100*(coef(model.ts2.gls) - coef(model.ts2))/coef(model.ts2),1)
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Why are the GLS coefficients different than the OLS coefficients?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-02}
-[click in this cell and type your answer here]
-```
+- **Question 2.** Why are the GLS coefficients different than the OLS coefficients?
+
+<p class="comment">
+[ Answer 2. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 **Lets go deeper.**
 
@@ -176,17 +197,27 @@ Display the $90\%$ confidence intervals of the GLS model, calcualte the residual
 #- generic intervals method has a specific method for a fitted GLS model
 intervals(model.ts2.gls, level=0.90)
 ```
+```{r gls-2nd-residuals }
+summary(res.ts2.gls <- residuals(model.ts2.gls))
+```
 
-```{r 2nd-ols-summary }
+```{r gls-2nd-residuals-summary }
 summary(res.ts2)
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- What are the main differences between these sets of residuals? Which surface, in this case, most closely fits the points? Why?
 
-```{ r ans-03}
-[click in this cell and type your answer here]
+```{r 2nd-ols-res-summary }
+res.ts2 <- set_units(residuals(model.ts2), m)
+summary(res.ts2)
 ```
+
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
+
+- **Question 3.** What are the main differences between these sets of residuals? Which surface, in this case, most closely fits the points? Why?
+
+<p class="comment">
+[ Answer 3. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ```{r predict-gls-summary }
 #- predict.gls function (of the nlme package) specific method for a fitted GLS model
@@ -194,24 +225,21 @@ pred.ts2.gls <- predict(model.ts2.gls, newdata=grid.df)
 summary(pred.ts2.gls)
 ```
 
+```{r spat-rast }
 #- SpatRast of predictions
 grid.gls <- grid
 values(grid.gls) <- pred.ts2.gls
 summary(values(grid.gls))
+```
 
 ```{r plot-gls }
 #- plot
 plot(grid.gls, col = rainbow(100), main = "GLS 2nd order predicted surface")
 points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
-       #pch=16,
-       #col = ifelse((res.ts2.gls < 0), "red", "green"),
-       #cex=2*abs(res.ts2.gls)/max(abs(res.ts2.gls))
-       col= ifelse((res.ts2.gls < 0), "red", "green"),
-       cex=2*abs(res.ts2.gls)/max(abs(res.ts2.gls)),
        pch=21,
+       col=ifelse((res.ts2.gls < 0), "red", "green"),
+       cex=2*abs(res.ts2.gls)/max(abs(res.ts2.gls)),
        bg = adjustcolor("black", alpha.f = 0.1),
-       #col = "black",
-       #cex = 0.9,
        lwd = 0.5)
 ```
 
@@ -219,12 +247,14 @@ points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
 
 Lets see how different?
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- What are the main differences between these sets of residuals? Which surface, in this case, most closely fits the points? Why?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-04}
-[click in this cell and type your answer here]
-```
+- **Question 4.** What are the main differences between these sets of residuals? Which surface, in this case, most closely fits the points? Why?
+
+<p class="comment">
+[ Answer 4. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
+
 
 ```{r plot-diff-ols-gls }
 #- difference between the OLS and GLS trendsurfaces
@@ -233,12 +263,13 @@ plot(grid.gls.ols.diff, col = topo.colors(64),
      main = "GLS - OLS 2nd order trend surfaces, m")
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Where are the largest differences between the OLS and GLS trend surfaces? Explain why.
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-05}
-[click in this cell and type your answer here]
-```
+- **Question 5.** Where are the largest differences between the OLS and GLS trend surfaces? Explain why.
+
+<p class="comment">
+[ Answer 5. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 Lets look at the residuals
 
@@ -246,17 +277,19 @@ Lets look at the residuals
 #- residuals from the GLS trend surface and as a postplot
 summary(res.ts2.gls)
 ```
+
 ```{r gls-fit-residuals }
-#- plot
+#- plot  ??local spatial correlation??
 plot(cfaq$Y ~ cfaq$X, cex=3*abs(res.ts2.gls)/max(abs(res.ts2.gls)),
      col=ifelse(res.ts2.gls > 0, "green", "red"),
      xlab="X", ylab="Y",
      main="Residuals from 2nd-order trend, GLS fit",
      sub="Positive: green; negative: red", asp=1)
-##--  ??local spatial correlation?? --##
 ```
 
-**Look at how correlated the residuals are. Nearby data points have similar values**
+<div class="alert alert-info">
+  <strong>Look at how correlated the residuals are.</strong> Nearby data points have similar values
+</div>
 
 We now account for the spatial correlation of the residuals
 
@@ -272,14 +305,15 @@ plot(vr.gls, plot.numbers=T,
      xlab = "separation [m]", ylab = "semivariance [m^2]")
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- What are the approximate variogram parameters?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-06}
-[click in this cell and type your answer here]
-```
+- **Question 6.** What are the approximate variogram parameters?
 
-###1. a) Variogram Modeling
+<p class="comment">
+[ Answer 6. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
+
+### 1. a) Variogram Modeling
 
 In order to solve any Kriging formula we need to compute the semivariance at _any_ seperation distance. We want to know the values that will remove the _'overlarge influence'_ nearby datapoints have on a prediction.
 
@@ -291,7 +325,7 @@ We will not go into these here but remember to `effective-range / 3` when chooin
 #-  specify variogram model and parameters
 vr.gls.m <- vgm(psill=200, model="Mat", range=15000)#, nugget=25)
 #vr.gls.m <- vgm(psill=40, model="Exp", range=22000/3, nugget=0)
-(vr.gls.m.f <- fit.variogram(vr.gls, vr.gls.m)
+(vr.gls.m.f <- fit.variogram(vr.gls, vr.gls.m))
 ```
 
 ```{r plot-variogram-model }
@@ -308,12 +342,13 @@ print(vr.gls.m.f)
 intervals(model.ts2.gls)$corStruct[2]
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Does the range parameter of this fitted model agree with the estimate from the GLS fit?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-07}
-[click in this cell and type your answer here]
-```
+- **Question 7.** Does the range parameter of this fitted model agree with the estimate from the GLS fit?
+
+<p class="comment">
+[ Answer 7. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ### 1. b) The Ordinary Kriging system
 
@@ -347,12 +382,13 @@ class(kr)
 plot(kr["var1.pred"], pch=15, nbreaks=24, main="Residuals from GLS trend, m")
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Which areas were most changed by interpolating the residuals? Why?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-08}
-[click in this cell and type your answer here]
-```
+- **Question 8.** Which areas were most changed by interpolating the residuals? Why?
+
+<p class="comment">
+[ Answer 8. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ```{r ok-std-dev-summary }
 #- prediction standard deviations and plot
@@ -366,12 +402,13 @@ plot(kr["var1.sd"], pch=15, nbreaks=24, pal = heat.colors,
      main="Standard errors of residuals from GLS trend, m")
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Which areas have the most and least uncertainty? Why?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-09}
-[click in this cell and type your answer here]
-```
+- **Question 9.** Which areas have the most and least uncertainty? Why?
+
+<p class="comment">
+[ Answer 10. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>`
 
 ## 2. Regression Kriging
 
@@ -410,13 +447,13 @@ Compare the GLS-RK with the GAM
 summary(grid.rkgls.gam <- (grid.rkgls - grid.gam))
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- $\color{red}{\text{\textbf{QUESTION}}}$: 
-- Where are the largest differences between these two trend surface predictions? Explain why, considering how the two surfaces are computed
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-10}
-[click in this cell and type your answer here]
-```
+- **Question 10.** Where are the largest differences between these two trend surface predictions? Explain why, considering how the two surfaces are computed
+
+<p class="comment">
+[ Answer 10. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ## 3. Universal Kriging
 
@@ -428,10 +465,11 @@ UK bypasses the GLS and predicts a surface from a 2nd-order OLS. In other words 
 
 **We start with a clean slate**
 
-```{r look }
+```{r look-see }
 #- what do we have thusfar?
 names(grid.sf)
 ```
+
 ```{r str-grid }
 str(grid.sf$geometry)
 ```
@@ -449,19 +487,20 @@ str(cfaq.sf$geometry)
 
 ```{r str-grid-sf-coords }
 #-- 
-str(st_coordinates(grid.sf))
+str(st_coordinates(cfaq.sf))
 ```
 
 ```{r variables-to-grid }
 #- variables to grid
-grid.sf$X <- st_coordinates(grid.sf)[ , "X"]
-grid.sf$Y <- st_coordinates(grid.sf)[ , "Y"]
-names(grid.sf)
+cfaq.sf$X <- st_coordinates(cfaq.sf)[ , "X"]
+cfaq.sf$Y <- st_coordinates(cfaq.sf)[ , "Y"]
+names(cfaq.sf)
 ```
 Variogram from the OLS
 ```{r ols-empirical-variogram-plot}
 #- empirical variogram
-vr <- variogram(zm ~ E + N + I(E^2) + I(N^2) + I(E*N), locations = aq.sf, cutoff = 50000)
+vr <- variogram(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), locations = cfaq.sf, 
+                cutoff = 50000)
 #- plot
 plot(vr, plot.numbers = TRUE, main = "Residuals from 2nd-order OLS trend surface", xlab = "separation (m)", ylab = "semivariance (m^2)")
 ```
@@ -469,22 +508,26 @@ plot(vr, plot.numbers = TRUE, main = "Residuals from 2nd-order OLS trend surface
 ```{r ols-variogram-model}
 #- variogram model 
 #(vr.m.f <- fit.variogram(vr, vgm(35, "Exp", 22000/3, 0)))
-vr.m.f <- fit.variogram(vr, vgm(psill=200, model="Mat", range=15000)#, nugget=25)
+vr.m.f <- fit.variogram(vr, vgm(psill=200, model="Mat", range=15000))#, nugget=25)
 ```
 
 ```{r plot-ols-variogram-model}
 #- plot
 plot(vr, plot.numbers=TRUE, xlab="separation (km)", ylab="semivariance (m^2)", model=vr.m.f, main="Fitted variogram model, residuals from 2nd-order OLS trend surface")
+```
 
 
 ```{r uk }
 #- uk
-k.uk <- krige(waterLevel ~ E + N + I(E^2) + I(N^2) + I(E*N), locations = aq.sf, newdata = grid1km.sf, model=vr.m.f)
+k.uk <- krige(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), locations = cfaq.sf, newdata =
+                grid.sf, model=vr.m.f)
 ```
 
 ```{r plot-uk }
 #- plot uk predictors
 plot(k.uk["var1.pred"], pch=15, col = rainbow(100), nbreaks=24, main="UK predictions, m")
+#plot(k.uk["var1.pred"], pch=15, col = rainbow(100), main="UK predictions, m")
+
 ```
 
 ```{r uk-std-dev-summary }
@@ -531,20 +574,26 @@ hist(grid.diff.uk.rkgls, main = "UK - GLS-RK prediction differences", freq = FAL
 plot(grid.diff.uk.rkgls, sub="UK - GLS-RK predictions", main="difference, m", xlab="East", ylab="North", col = topo.colors(64))
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- How large are differences between the UK and GLS-RK trend surface predictions? Where are the largest differences? Explain why there is a difference.
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-11}
-[click in this cell and type your answer here]
-```
+- **Question 11.** How large are differences between the UK and GLS-RK trend surface predictions? Where are the largest differences? Explain why there is a difference.
 
-$\color{red}{\text{\textbf{DISCUSSION}}}$: 
-- In this study area, which of the prediction methods would you recommend, and why?
+<p class="comment">
+[ Answer 10. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
-```{ r ans-11}
-[click in this cell and type your answer here]
 
-- For each method introduced, in what situations would you prefer it to the other methods?
+<div class="alert alert-info">
+  <strong>DISCUSSION</strong> </div>
 
-```{ r ans-12}
-[click in this cell and type your answer here]
+- **Thoughts 1**. In this study area, which of the prediction methods would you recommend, and why?
+
+<p class="comment">
+[ Thoughts 1. click in this cell and type your comments here. your answer must be between the outer [] brackets ]
+</p>
+
+- **Thoughts 2**. In this study area, which of the prediction methods would you recommend, and why? For each method introduced, in what situations would you prefer it to the other methods?
+
+<p class="comment">
+[ Thoughts 2. click in this cell and type your comments here. your answer must be between the outer [] brackets ]
+</p>

@@ -1,24 +1,42 @@
 ---
-title: "Trend Surface Analysis with R (part III)"
-output: html_notebook
----
 ##-- arkriger: August 2023
+title: "Trend Surface Analysis with R (part III)"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+---
+
+<style> 
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+margin-left: 25px;
+border-radius: 5px;
+font-style: italic;
+}
+
+</style>
 
 In this third Notebook on *higher order* **_Trend Surface analysis with R_** we introduce;
 
 1. General Additive Models (GAM) and
 2. Thin plate splines
 
-$\color{red}{\text{\textbf{REQUIRED}}}$: 
-**You are required to insert your outputs and any comment into this document.** The document you submit should therefore contain the existing text in addition to:
+<div class="alert alert-danger">
+  <strong>REQUIRED!</strong> 
+  
+You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:
 
-- Plots and other outputs from executing the code chunks
-- Discussion of your plots and other outputs as well as conclusions reached.
-- This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
+ - Plots and other outputs from executing the code chunks
+ - Discussion of your plots and other outputs as well as conclusions reached.
+ - This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
+</div>
 
 ## 1. General Additive Models
 
-We now truly start our journey into higher order trend surface analysis. GAMs are very similar to multiple `linear regression`; where each predictor  typically has a smooth function. The advantage is that GAMs can capture intricate and complex patterns traditional `linear models` often miss.
+We now truly start our journey into higher order trend surface analysis. GAMs are very similar to multiple **linear regression**; where each predictor  typically has a smooth function. The advantage is that GAMs can capture intricate and complex patterns traditional **linear models** often miss.
 
 The disadvantage of these methods are their computational complexity and the risk of overfitting. It is pretty dangerous to extrapolate outside the range of calibration (i.e.: beyond the observation points).
 
@@ -29,7 +47,6 @@ rm(list=ls())
 # Install necessary packages: You only need to run this part once
 ##- install.packages(c("sf", "gstat", "ggplot2", "gridExtra","units", "terra","mgcv","fields"))
 
-#library(repr)
 library(sf) # 'simple features' representations of spatial objects
 library(gstat) # geostatistics
 library(ggplot2) # geostatistics
@@ -44,7 +61,7 @@ We've already covered creating a 500m grid and 2nd-order prediction and interpol
 
 ```{r read-dataset }
 #-- read
-file = 'cptFlatsAquifer_watertable4.txt'
+file = 'cptFlatsAquifer_watertable.txt'
 ```
 
 ```{r import-grid-2nd-ols }
@@ -111,12 +128,13 @@ g2 <- ggplot(drop_units(cfaq), aes(x=X, y=waterLevel)) +
 grid.arrange(g1, g2, ncol = 2)
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Do these marginal relations appear to be linear in the predictors?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-01}
-[click in this cell and type your answer here]
-```
+- **Question 1.** Do these marginal relations appear to be linear in the predictors?
+
+<p class="comment">
+[ Answer 1. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 **Fitting the GAM**
 
@@ -127,16 +145,15 @@ model.gam <- gam(waterLevel ~ s(X, Y, k = 29), data=drop_units(cfaq))
 summary(model.gam)
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- How well does this model fit the calibration observations?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-02}
-[click in this cell and type your answer here]
-```
+- **Question 2.** How well does this model fit the calibration observations?
 
-**Since we have a 2nd-order trend surface; lets compare.**
+<p class="comment">
+[ Answer 2. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
-we do this with numbers and graphs.
+**Since we have a 2nd-order trend surface; lets compare.** We do this with numbers and graphs.
 
 ```{r residuals-gam-summary }
 #- residuals
@@ -176,12 +193,13 @@ g2 <- ggplot(data=as.data.frame(residuals(model.ts2)), aes(residuals(model.ts2))
 grid.arrange(g1, g2, nrow=1)
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Which histogram shows the narrowest spread?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-03}
-[click in this cell and type your answer here]
-```
+- **Question 2.** Which histogram shows the narrowest spread?
+
+<p class="comment">
+[ Answer 2. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ```{r plot-residuals-gam }
 #-- residuals as a bubble plot. show the size of the residuals by the size of a point, and the polarity (positive vs. negative)
@@ -198,12 +216,13 @@ ggplot(data = drop_units(cfaq)) +
                      values = c("red","green","blue"))
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Does there appear to be any local spatial correlation of the residuals?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-04}
-[click in this cell and type your answer here]
-```
+- **Question 3.** Does there appear to be any local spatial correlation of the residuals?
+
+<p class="comment">
+[ Answer 3. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ```{r plot-gam-3D}
 #- gam as 3D surface
@@ -224,12 +243,13 @@ vis.gam(model.gam, plot.type="persp", color="terrain",
 (rmse.gam <- sqrt(sum(residuals(model.gam)^2)/length(residuals(model.gam))))
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Does there appear to be any local spatial correlation of the residuals?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-05}
-[click in this cell and type your answer here]
-```
+- **Question 4.** Does there appear to be any local spatial correlation of the residuals?
+
+<p class="comment">
+[ Answer 4. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ```{r predict-gam-summary }
 #-- predict aquifer elevation, standard error of prediction using the fitted GAM
@@ -252,6 +272,7 @@ str(tmp)
 grid.df$pred.gam <- as.numeric(tmp$fit)
 grid.df$pred.gam.se <- as.numeric(tmp$se.fit)
 ```
+
 ```{r plot-gam }
 #-- plot
 grid.gam <- grid
@@ -268,12 +289,14 @@ points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
                                      lwd = 0.5)
 ```
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- How well does the GAM trend surface fit the points? Are there obvious problems?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-06}
-[click in this cell and type your answer here]
-```
+- **Question 5.** How well does the GAM trend surface fit the points? Are there obvious problems?
+
+<p class="comment">
+[ Answer 5. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
+
 ```{r plot-gam-uncertainty }
 #- standard errors of prediction
 grid.gam.se <- grid
@@ -300,18 +323,19 @@ grid()
 
 Here the positive differences are where the GAM predicts higher values than the trend surface.
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- Where are the largest differences between the GAM and 2nd order OLS trend surface predictions? Explain why, considering how the two surfaces are computed.
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-07}
-[click in this cell and type your answer here]
-```
+- **Question 6.** Where are the largest differences between the GAM and 2nd order OLS trend surface predictions? Explain why, considering how the two surfaces are computed.
+
+<p class="comment">
+[ Answer 6. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ## 2. Thin-plate spline interpolation
 
 Thin-plate splines are equivalent to a _thin and flexible_ plate warped to fit a dataset. We can do this with a single _plane_ surface similar to a 1st-degree polynomial all the way through to an extremely supple surface that perfectly fit every observation.
 
-Generally we choose a balanced approach because overfitting introduces noise.
+Generally we choose a **balanced approach** because *overfitting* introduces noise.
 
 ```{r setup-tps }
 #-- set up thin plate spline
@@ -370,7 +394,7 @@ points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
        lwd = 0.5)
 ```
 
-As with the other interpolation plots; the red and green illustrate positive and negative errors with size representative of magnitude. Notice how closely the surface fits the points.
+As with the other interpolation plots; the red and green illustrate positive and negative errors ***with size representative of magnitude**. Notice how closely the surface fits the points.
 
 Similarly; what we really want to know is where the thin-plate spline differs from the GAM surface.
 
@@ -385,9 +409,11 @@ plot(grid.diff.tps.gam,
      xlab = "X", ylab = "Y")
 ```
 
-$\color{green}{\text{\textbf{A BREATHER}}}$: 
+<div class="alert alert-success">
+  <strong>A BREATHER</strong> </div>
 
-Before we continue onto the next Notebook and Generalized Least Squares; we might want to take a break and possibly understand why we would want to go further than this pretty good surface!
+
+Before we continue onto the next Notebook and **Generalized Least Squares**; we might want to take a break and possibly understand why we would want to go further than this pretty good surface!
 
 One of the principles of Spatial Data Science is; **data is spatially autocorrelated**. Patterns and particularly residuals (errors) have a spatial structure / are connected.
 
@@ -430,10 +456,11 @@ print(p2, split = c(2,1,2,1), more = F)
 
 - $a$ **the range**: the seperation where there is no more spatial autocorrelation. i.e.: where the semivariance reaches **the sill**.
 
-$\color{red}{\text{\textbf{QUESTION}}}$: 
-- What are the estimated sill, range, and nugget of this variogram?
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-```{ r ans-07}
-[click in this cell and type your answer here]
-```
+- **Question 7.** What are the estimated sill, range, and nugget of this variogram?
+
+<p class="comment">
+[ Answer 7. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 

@@ -1,9 +1,23 @@
 ---
 ##-- arkriger: August 2023
-
 title: "Trend Surface Analysis with R (part II)"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
 ---
+
+<style> 
+p.comment {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+margin-left: 25px;
+border-radius: 5px;
+font-style: italic;
+}
+
+</style>
 
 This Notebook (the second-of-four) serves to continue a journey through a series of exercises focused on *higher order* **_Trend Surface analysis with R_**.
 
@@ -14,11 +28,15 @@ It consists of two sections:
 	b) Second-order trend surfaces
 2. Trend Surface Prediction
 
-<span style="color: red;">**REQUIRED:** You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:</span>
+<div class="alert alert-danger">
+  <strong>REQUIRED!</strong> 
+  
+You are required to insert your outputs and any comment into this document. The document you submit should therefore contain the existing text in addition to:
 
-- Plots and other outputs from executing the code chunks
-- Discussion of your plots and other outputs as well as conclusions reached.
-- This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
+ - Plots and other outputs from executing the code chunks
+ - Discussion of your plots and other outputs as well as conclusions reached.
+ - This should also include any hypotheses and assumptions made as well as factors that may affect your conclusions.
+</div>
 
 ## 1. Ordinary Least Square
 From the previous trendSurface01 Notebook we are aware our data suggests a trend surface; a water level as some smooth function of coordinates. A polynomial function of the coordinates.
@@ -106,13 +124,13 @@ We see amoung the results of our **_fit_** is an Intercept ---an elevation--- an
 
 In other words for every 500-m east and west we increase by 0.00205m and 0.00245m respectively.
 
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **What is the equation of the trend surface? How does elevation vary with the E and N coördinates? Is the relation statistically-significant? How much of the total variability does it explain? Are all the coefficients statistically-significant?**
+- **Question 1.** What is the equation of the trend surface? How does elevation vary with the X and Y coordinates? Is the relation statistically-significant? How much of the total variability does it explain? Are all the coefficients statistically-significant?
 
-```{ r ans-01}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 1. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ```{r summarize-lack-fit}
 #- summarize residuals (lack of fit)
@@ -133,13 +151,13 @@ range(res.ts1)
 max(abs(res.ts1))/median(cfaq$waterLevel)*100
 ```
 
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **What is the range of residuals? How does this compare with the target variable? How are the residuals distributed in feature space?**
+- **Question 2.** What is the range of residuals? How does this compare with the target variable? How are the residuals distributed in feature space?
 
-```{ r ans-02}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 2. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 **Two diagnostic `plot()`s of a `linear model` that deserve attention are:**
 
@@ -152,17 +170,17 @@ par(mfrow=c(1,2))
 plot(model.ts1, which=1:2)
 par(mfrow=c(1,1))
 ```
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **Does this model meet the feature-space requirements for a valid linear model?**
+- **Question 3.** Does this model meet the feature-space requirements for a valid linear model?
 
     a. No relation between the fitted values and the residuals  
     b. Equal spread of residuals across the range of fitted values  
     c. Normally-distributed standardized residuals
 
-```{ r ans-03}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 3. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ```{r plot-residual-1st-ols-model }
 #- residuals as postplot
@@ -176,13 +194,13 @@ plot(cfaq$Y ~ cfaq$X,
 grid()
 ```
 
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **Is there a spatial pattern to the residuals? Is there local spatial correlation without an overall pattern? What does this imply about the suitability of a first-order trend surface?**
+- **Question 4.** Is there a spatial pattern to the residuals? Is there local spatial correlation without an overall pattern? What does this imply about the suitability of a first-order trend surface?
 
-```{ r ans-04}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 4. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ### 1. b) Second-order Trend Surface
 
@@ -194,7 +212,9 @@ $$
 
 where: $Z$ is the is the elevation of the surface at $(x,y)$; $𝜷$ are possible coefficients representing the average elevation, slopes and curvatures in the $x$ and $y$ directions and $ε$ is the error term accounting for small fluctuations and deviations from the average.
 
-**Notice:** A Second-order trend surface includes linear, quadratic (squared) functions and their cross-product. This means the surface can be defined in terms of elevation, slope and another variable (e.g.: curvature). In other words it is no longer a plane surface.
+<div class="alert alert-success">
+  <strong>NOTICE!</strong> A Second-order trend surface includes linear, quadratic (squared) functions and their cross-product. This means the surface can be defined in terms of elevation, slope and another variable (e.g.: curvature). In other words it is no longer a plane surface.
+</div>
 
 **We also define and _fit_ the model matrix**
 
@@ -215,13 +235,13 @@ model.ts2 <- lm(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), data=drop_units(c
 summary(model.ts2)
 ```
 
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **How much of the variance does the second-order surface explain?**
+- **Question 5.** How much of the variance does the second-order surface explain?
 
-```{ r ans-05}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 5. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 **Since we now have two linear models** _---one more complicated than the other---_ **we can compare them to determine if the simplier is in fact better. We do this with the `anova()` function**
 
@@ -229,13 +249,13 @@ summary(model.ts2)
 #- compare the 1st and 2nd order models statistically
 anova(model.ts1, model.ts2)
 ```
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **Is the second-order surface statistically superior to the first-order surface?**
+- **Question 6**. Is the second-order surface statistically superior to the first-order surface?
 
-```{ r ans-06}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 6. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ```{r summarize-residual-2nd-ols-model }
 #- summary
@@ -248,13 +268,13 @@ hist(res.ts2, breaks=16, main="Residuals from 2nd-order trend", xlab="residual e
 rug(res.ts2)
 max(abs(res.ts2))/median(cfaq$waterLevel)
 ```
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **What is the range of residuals? How does this compare with the target variable? How are they distributed in feature space? How do these compare with the residuals from the first-order surface?**
+- **Question 7.** What is the range of residuals? How does this compare with the target variable? How are they distributed in feature space? How do these compare with the residuals from the first-order surface?
 
-```{ r ans-07}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 7. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ```{r diagnostic-2nd-ols-model }
 #- diagnostic plots
@@ -263,23 +283,23 @@ plot(model.ts2, which=1:2)
 par(mfrow=c(1,1))
 ```
 
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **Does this model meet the feature-space requirements for a valid linear model?**
+- **Question 8.** Does this model meet the feature-space requirements for a valid linear model?
 
     a. No relation between the fitted values and the residuals  
     b. Equal spread of residuals across the range of fitted values  
     c. Normally-distributed standardized residuals
 
-```{ r ans-08}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 8. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
-- **Identify the largest overprediction that do not fit the normal Q-Q plot**
+- **Question 9.** Identify the largest overprediction that do not fit the normal Q-Q plot
 
-```{ r ans-09}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 9. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 Looking at the QQ plot above we can take a value of 1 standard deviation to find the largest negative residuals.
 
@@ -310,20 +330,20 @@ points(cfaq[ix, "Y"] ~ cfaq[ix, "X"],
        #st_coordinates(cfaq.sf)[ix, 'X'], st_coordinates(cfaq.sf)[ix , 'Y'],
        pch=20)
 #plot(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],pch=20, col="blue")#, add = TRUE)
-text(cfaq[ix, "X"] ~ cfaq[ix, "Y"],
+text(cfaq[ix, "X"], cfaq[ix, "Y"],
      #st_coordinates(cfaq.sf)[,1], st_coordinates(cfaq.sf)[,2],
      #st_coordinates(cfaq.sf)[ix, 'X'], st_coordinates(cfaq.sf)[ix ,'Y'],
      round(sres.ts2[ix], 2), pos=4)
 grid()
 ```
 
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **Is there an overall pattern to the residuals? Is there local spatial correlation without an overall pattern? Are the largest model residuals clustered? Does there seem to be any anisotropy (stronger spatial dependence in one direction than the orthogonal direction)?**
+- **Question 10.** Is there an overall pattern to the residuals? Is there local spatial correlation without an overall pattern? Are the largest model residuals clustered? Does there seem to be any anisotropy (stronger spatial dependence in one direction than the orthogonal direction)?
 
-```{ r ans-09}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 10. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 ## 2. Trend Surface Prediction
 
@@ -387,7 +407,6 @@ points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
        pch=21, #pch=16,
        col = ifelse(res.ts2 < set_units(0, m), "red", "green"),
        cex=2*abs(res.ts2)/max(abs(res.ts2)),
-                                     pch=21,
                                      bg = adjustcolor("black", alpha.f = 0.1),
                                      #col = "black",
                                      #cex = 0.9,
@@ -424,23 +443,24 @@ points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1], pch=21,
       lwd = 0.5)
 ```
 
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **How well does the trend surface fit the points? Are there obvious problems?**
+- **Question 11.** How well does the trend surface fit the points? Are there obvious problems?
 
-```{ r ans-10}
-[click in this cell and type your answer here]
-```	   
+<p class="comment">
+[ Answer 11. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>   
 
-<span style="color: orange;">**QUESTION:**</span>
+- **Question 12.** Comment on how the 1st- and 2nd-order surface predictions fulfill thier definitions.
 
-- **Comment on how the 1st- and 2nd-order surface predictions fulfill thier definitions.**
+<div class="alert alert-info">
+  
+<strong>HINT!</strong> Look at the two surfaces. Is the 1st-order a plane? In which direction does it slope? What is the shape of the 2nd-order surface?
+</div>
 
-    <span style="color: blue;">**HINT:**</span> Look at the two surfaces. Is the 1st-order a plane? In which direction does it slope? What is the shape of the 2nd-order surface?
-
-```{ r ans-11}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 12. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
 
 ```{r summarize-predict-2nd-ols-model }
@@ -451,13 +471,14 @@ summary(pred.ts2)
 ```{r summarize-griddf }
 summary(grid.df)
 ```
+
 ```{r scnd-ols-prediction-to-griddf }
 grid.df[, 3:5] <- pred.ts2
 names(grid.df)[3:5] <- c("ts2.fit", "ts2.lwr", "ts2.upr")
 summary(grid.df)
 ```
 
-**We end this Notebook with summarizing the uncertainty from the trend surface as absolute differences between the upper and lower predictions limits; and then a percentage of the best fit value. And then illustrate this 95% prediction interval as a it applies to our study area**
+We end this Notebook **with summarizing the uncertainty from the trend surface as absolute differences** between the upper and lower predictions limits; and then a **percentage of the best fit value**. Finally we **illustrate this 95% prediction interval** as a it applies to our study area**
 
 ```{r summarize-2nd-ols-uncertainty }
 #-- uncertainty as upper and lower absolute values
@@ -478,18 +499,17 @@ grid()
 points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1], pch=16,col = "gray")
 ```
 
-<span style="color: orange;">**QUESTION:**</span>
+<div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **What are the units of prediction interval? How large are they? How does this compare to the variable we are trying to predict?**
+- **Question 13.** What are the units of prediction interval? How large are they? How does this compare to the variable we are trying to predict?
 
-```{ r ans-12}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 13. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
 
-<span style="color: orange;">**QUESTION:**</span>
 
-- **Describe the spatial pattern of the prediction interval.**
+- **Question 14.** Describe the spatial pattern of the prediction interval.
 
-```{ r ans-13}
-[click in this cell and type your answer here]
-```
+<p class="comment">
+[ Answer 14. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
