@@ -79,7 +79,7 @@ We've already covered creating a 500m grid and 2nd-order prediction and interpol
 
 ```{r read-dataset }
 #-- read
-file = 'C:/Users/T0084076/Downloads/cptFlatsAquifer_watertable4.txt'
+file = 'cptFlatsAquifer_watertable.txt'
 ```
 
 ```{r import-grid-2nd-ols-gam }
@@ -446,8 +446,18 @@ plot(grid.rkgls, col = rainbow(100),
 ```{r plotly }
 # Convert dataframe to matrix
 grid.df_matrix <- acast(grid.df, X~Y, value.var="rkgls")
-fig <- plot_ly( z = example_matrix, colors = rainbow(100));fig <- fig %>% add_surface();fig
-htmlwidgets::saveWidget(as_widget(fig), "plotly.html")
+
+##-- perhaps change view?
+# camera_params = dict(
+#     up=dict(x=0,y=0,z=1),
+#     center=dict(x=0,y=0,z=0),
+#     eye=dict(x=2.25,y=2.25,z=.25)
+# )
+
+fig <- plot_ly( z = example_matrix, colors = rainbow(100)); fig <- fig.update_layout(scene_camera=camera_params) %>% add_surface();
+fig
+
+#htmlwidgets::saveWidget(as_widget(fig), "plotly.html")
 
 ```
 
