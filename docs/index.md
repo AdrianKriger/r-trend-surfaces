@@ -10,6 +10,8 @@ description: "Trend Surface Analysis with R."
 
 In this set of exercises, we explore the concepts and applications of trend surface analysis, focusing on 1st and 2nd order trend surfaces and empirical smooth functions. We also delve into the various flavors of Kriging; a powerful geostatistical interpolation method.
 
+<iframe src="{{site.baseurl | prepend: site.url}}/img/plotly.html" style="width: 800px; height: 400px; border: 0px"></iframe>
+
 The goal of Trend surface analysis is to **help us identify and model the underlying trend or pattern in spatial data, while interpolation techniques enable us to estimate values at unsampled locations based on nearby data points**. Through this hands-on exercise and a real-world example, you will gain a deeper understanding of spatial interpolation techniques and their applications in various fields, which includes geology, environmental studies, agriculture, urban planning, remote sensing, climate studies, geomorphology, archaelogy, health studies and seismology.
 
 For these set of exersices we use a dataset that is well-suited to illustrate the concepts of trend surface: a set of observations of the elevation above mean sea level of the top of the Cape Flats Aquifer, South Africa measured at ~29 wells [harvested from Table Mountain groundwaterinfo](https://tablemountain.groundwaterinfo.africa/index.php/view/map/?repository=tmwsa&project=1_water_source_areas). 
