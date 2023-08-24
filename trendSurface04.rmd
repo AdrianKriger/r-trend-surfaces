@@ -60,7 +60,6 @@ rm(list=ls())
 # Install necessary packages: You only need to run this part once
 ##- install.packages(c("sf", "gstat", "ggplot2", "gridExtra","units", "terra","mgcv","fields", "nlme"))
 
-#library(repr)
 library(sf) # 'simple features' representations of spatial objects
 library(gstat) # geostatistics
 library(ggplot2) # geostatistics
@@ -79,7 +78,7 @@ We've already covered creating a 500m grid and 2nd-order prediction and interpol
 
 ```{r read-dataset }
 #-- read
-file = 'cptFlatsAquifer_watertable.txt'
+file = 'cptFlatsAquifer_watertable4.txt'
 ```
 
 ```{r import-grid-2nd-ols-gam }
@@ -440,27 +439,6 @@ values(grid.rkgls) <- grid.df$rkgls
 plot(grid.rkgls, col = rainbow(100),
      main="GLS-RK prediction, aquifer elevation, m.a.s.l.")
 ```
-<div class="alert alert-info">
-  <strong>This is a good time to create a _fancy interactive_ 3D surface plot</strong> </div>
-
-```{r plotly }
-# Convert dataframe to matrix
-grid.df_matrix <- acast(grid.df, X~Y, value.var="rkgls")
-
-##-- perhaps change view?
-# camera_params = dict(
-#     up=dict(x=0,y=0,z=1),
-#     center=dict(x=0,y=0,z=0),
-#     eye=dict(x=2.25,y=2.25,z=.25)
-# )
-
-fig <- plot_ly( z = example_matrix, colors = rainbow(100)); fig <- fig.update_layout(scene_camera=camera_params) %>% add_surface();
-fig
-
-#htmlwidgets::saveWidget(as_widget(fig), "plotly.html")
-
-```
-
 Compare the GLS-RK with the GAM
 
 ```{r diff-gls-rk-minus-gam }
@@ -623,3 +601,25 @@ plot(grid.diff.uk.rkgls, sub="UK - GLS-RK predictions", main="difference, m", xl
 <p class="comment">
 [ Thoughts 2. click in this cell and type your comments here. your answer must be between the outer [] brackets ]
 </p>
+
+<div class="alert alert-success">
+  <strong>This is an excellent time to create a _fancy interactive_ 3D surface plot</strong> </div>
+
+```{r plot-fancy }
+grid.df_matrix <- acast(grid.df, X~Y, value.var="rkgls")
+# More rows than column, and the x and y should have the same size
+y <- x <- as.numeric(rownames(grid.df_matrix))
+
+fig <- plot_ly(showscale = FALSE)
+fig <- fig %>% add_surface(z = grid.df_matrix, x= x, y=y, colors = rainbow(100), 
+                           type = "surface") %>%
+  layout(
+    scene=list(
+    xaxis=list(title='x (m)'),
+    yaxis=list(title='y (m)'),
+    zaxis=list(title='Elevation (m)')))
+
+htmlwidgets::saveWidget(as_widget(fig), "plotly.html")
+
+fig
+```
