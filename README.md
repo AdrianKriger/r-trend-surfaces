@@ -12,7 +12,7 @@ Next, we'll explore **empirical smooth functions** to analyze spatial data. You 
 
 We end with Kriging. Kriging is a geostatistical interpolation method that provides optimal estimates of unknown values based on spatial autocorrelation. We will cover **Ordinary Kriging, Generalized Least Squares-Regression Kriging and Universal Kriging**, understanding their assumptions, implementation, and the benefits they offer in different scenarios.
 
-For these set of exersices we use a dataset that is well-suited to illustrate the concepts of trend surface: a set of observations of the elevation above mean sea level of the top of the Cape Flats aquifer, South Africa measured at ~ 29 wells [harvested from Table Mountain groundwaterinfo](https://tablemountain.groundwaterinfo.africa/index.php/view/map/?repository=tmwsa&project=1_water_source_areas).
+For these set of exersices we use a dataset that is well-suited to illustrate the concepts of trend surface: a set of observations of the elevation above mean sea level of the top of the Cape Flats aquifer, South Africa measured at ~29 wells [harvested from Table Mountain groundwaterinfo](https://tablemountain.groundwaterinfo.africa/index.php/view/map/?repository=tmwsa&project=1_water_source_areas).
 
 **WARNING!**
 **Please take care with the application of this dataset. 69% of the datapoints are synthetic. I made them up. Only 29 of the wells are authentic. The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result.**
