@@ -18,7 +18,7 @@ For these set of exersices we use a dataset that is well-suited to illustrate th
 
 <!--<div class="alert alert-danger">
   <strong>WARNING!:</strong> 
-**Please take care with the application of this dataset. 69% of the datapoints are synthetic. I made them up. Only 29 of the wells are authentic. _The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result._**</div>-->
+**Please take care with the application of this dataset. xx% of the datapoints are synthetic. I made them up. Only 29 of the wells are authentic. _The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result._**</div>-->
 
 **WARNING!**  
 **Please take care with the application of this dataset. 69% of the datapoints are synthetic. I made them up. Only 29 of the wells are authentic. _The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result._**
