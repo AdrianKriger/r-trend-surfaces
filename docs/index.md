@@ -12,11 +12,11 @@ In this set of exercises, we explore the concepts and applications of trend surf
 
 The goal of Trend surface analysis is to **help us identify and model the underlying trend or pattern in spatial data, while interpolation techniques enable us to estimate values at unsampled locations based on nearby data points**. Through this hands-on exercise and a real-world example, you will gain a deeper understanding of spatial interpolation techniques and their applications in various fields, which includes geology, environmental studies, agriculture, urban planning, remote sensing, climate studies, geomorphology, archaelogy, health studies and seismology.
 
-For these set of exersices we use a dataset that is well-suited to illustrate the concepts of trend surface: a set of observations of the elevation above mean sea level of the top of the Cape Flats Aquifer, South Africa measured at ~ 29 wells [harvested from Table Mountain groundwaterinfo](https://tablemountain.groundwaterinfo.africa/index.php/view/map/?repository=tmwsa&project=1_water_source_areas). 
+For these set of exersices we use a dataset that is well-suited to illustrate the concepts of trend surface: a set of observations of the elevation above mean sea level of the top of the Cape Flats Aquifer, South Africa measured at ~29 wells [harvested from Table Mountain groundwaterinfo](https://tablemountain.groundwaterinfo.africa/index.php/view/map/?repository=tmwsa&project=1_water_source_areas). 
 
 <!--<div class="alert alert-danger">
   <strong>WARNING!:</strong> 
-**Please take care with the application of this dataset. 69% of the datapoints are synthetic. I made them up. Only 29 of the wells are authentic. The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result.**</div>-->
+**Please take care with the application of this dataset. 69% of the datapoints are synthetic. I made them up. Only 29 of the wells are authentic. _The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result._**</div>-->
 
 **WARNING!**  
 **Please take care with the application of this dataset. 69% of the datapoints are synthetic. I made them up. Only 29 of the wells are authentic. The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result.**
