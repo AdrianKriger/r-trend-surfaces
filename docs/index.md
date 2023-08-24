@@ -12,6 +12,11 @@ In this set of exercises, we explore the concepts and applications of trend surf
 
 The goal of Trend surface analysis is to **help us identify and model the underlying trend or pattern in spatial data, while interpolation techniques enable us to estimate values at unsampled locations based on nearby data points**. Through this hands-on exercise and a real-world example, you will gain a deeper understanding of spatial interpolation techniques and their applications in various fields, which includes geology, environmental studies, agriculture, urban planning, remote sensing, climate studies, geomorphology, archaelogy, health studies and seismology.
 
-For these set of exersices we use a dataset that is well-suited to illustrate the concepts of trend surface: a set of observations of the elevation above mean sea level of the top of the Cape Flats aquifer, South Africa measured at ~ 30 wells [harvested from Table Mountain groundwaterinfo](https://tablemountain.groundwaterinfo.africa/index.php/view/map/?repository=tmwsa&project=1_water_source_areas). _**NB:** please take care with the application of this dataset. While the locations and dataset is real some of the values are for illustrative purposes only. A more authoritive dataset is required for a truly definitive result_.  
+For these set of exersices we use a dataset that is well-suited to illustrate the concepts of trend surface: a set of observations of the elevation above mean sea level of the top of the Cape Flats Aquifer, South Africa measured at ~ 29 wells [harvested from Table Mountain groundwaterinfo](https://tablemountain.groundwaterinfo.africa/index.php/view/map/?repository=tmwsa&project=1_water_source_areas). 
+
+<div class="alert alert-danger">
+  <strong>WARNING!</strong> 
+
+Please take care with the application of this dataset. 69$%$ of the datapoints are synthetic. I made them up. Only 29 of the wells are authentic. The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result.</div>
 
 These Notebooks are based on the work of [D.G. Rossiter](https://cals.cornell.edu/david-rossiter) and are subject to copywrite. _No sale nor payment to access_
