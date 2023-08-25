@@ -629,7 +629,7 @@ fig <- fig %>% add_surface(z = grid.df_matrix, x = x, y = y, colors = rainbow(10
     xaxis=list(title='x (m)'),
     yaxis=list(title='y (m)'),
     zaxis=axz, #list(title='Elevation (m)'),
-    aspectmode = 'manual', aspectratio = list(x=1, y=1, z=0.07)))  # set range of z-axis
+    aspectmode = 'manual', aspectratio = list(x=1, y=1, z=0.1)))  # set range of z-axis
 
 htmlwidgets::saveWidget(as_widget(fig), "plotly.html")
 
