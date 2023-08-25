@@ -603,21 +603,33 @@ plot(grid.diff.uk.rkgls, sub="UK - GLS-RK predictions", main="difference, m", xl
 </p>
 
 <div class="alert alert-success">
-  <strong>This is an excellent time to create a _fancy interactive_ 3D surface plot</strong> </div>
+  <strong>This is an excellent opportunity to create a _fancy interactive_ 3D surface plot</strong> </div>
+
 
 ```{r plot-fancy }
+#grid.df
 grid.df_matrix <- acast(grid.df, X~Y, value.var="rkgls")
 # More rows than column, and the x and y should have the same size
-y <- x <- as.numeric(rownames(grid.df_matrix))
+x <- as.numeric(rownames(grid.df_matrix))
+y <- as.numeric(colnames(grid.df_matrix))
 
-fig <- plot_ly(showscale = FALSE)
-fig <- fig %>% add_surface(z = grid.df_matrix, x= x, y=y, colors = rainbow(100), 
+#- change z-axis labels (ticks)
+axz <- list(
+  nticks = 2,
+  range = c(-20,120),
+  title='Elevation (m)'
+)
+
+fig <- plot_ly()#showscale = FALSE)
+fig <- fig %>% add_surface(z = grid.df_matrix, x = x, y = y, colors = rainbow(100), 
                            type = "surface") %>%
+  colorbar(title = "Water Level") %>%
   layout(
     scene=list(
     xaxis=list(title='x (m)'),
     yaxis=list(title='y (m)'),
-    zaxis=list(title='Elevation (m)')))
+    zaxis=axz, #list(title='Elevation (m)'),
+    aspectmode = 'manual', aspectratio = list(x=1, y=1, z=0.07)))  # set range of z-axis
 
 htmlwidgets::saveWidget(as_widget(fig), "plotly.html")
 
