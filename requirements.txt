@@ -1,6 +1,6 @@
 library(sf)        # 'simple features' representations of spatial objects
 library(gstat)     # geostatistics
-library(ggplot2)   # geostatistics
+library(ggplot2)   # plots
 library(gridExtra)
 library(units)     # units of measure
 library(terra)     # gridded data structures ("rasters")
