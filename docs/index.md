@@ -21,6 +21,6 @@ For these set of exersices we use a dataset that is well-suited to illustrate th
 **Please take care with the application of this dataset. xx% of the datapoints are synthetic. I made them up. Only 29 of the wells are authentic. _The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result._**</div>-->
 
 **WARNING!**  
-**Please take care with the application of this dataset. xx% of the datapoints are synthetic. I made them up. Only 29 of the wells are authentic. _The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result._**
+**Please take care with the application of this dataset. _The entire dataset is for illustrative purposes only. A more authoritive collection of data is required for a truly definitive result._**
 
 These notebooks are based on the work of [D.G. Rossiter](https://cals.cornell.edu/david-rossiter) and are subject to copywrite. _No sale nor payment to access_
