@@ -78,12 +78,12 @@ We've already covered creating a 500m grid and 2nd-order prediction and interpol
 
 ```{r read-dataset }
 #-- read
-file = 'cptFlatsAquifer_watertable4.txt'
+file = 'cptFlatsAquifer_watertable-Aug2023.txt'
 ```
 
 ```{r import-grid-2nd-ols-gam }
 #-- import
-cfaq <- read.csv(file, header = 1, sep = ',', dec = '.') #sep = '\t',
+cfaq <- read.csv2(file, header = 1, sep = ';', dec = ',')
 #- set crs
 cfaq.sf <- st_as_sf(cfaq, coords=c("long", "lat"), crs = 4326) #wgs84
 #- transform to local crs
@@ -297,7 +297,7 @@ We now account for the spatial correlation of the residuals
 
 #- extract the residuals into the point observations object
 cfaq.sf$res.ts2.gls <- residuals(model.ts2.gls)
-vr.gls <- variogram(res.ts2.gls ~ 1, loc=cfaq.sf, cutoff = 50000)
+vr.gls <- variogram(res.ts2.gls ~ 1, loc=cfaq.sf, cutoff = 65000)
 #- plot empirical variogram
 plot(vr.gls, plot.numbers=T,
      main="Residuals from second-order GLS trend", cex=1,
@@ -322,8 +322,8 @@ We will not go into these here but remember to `effective-range / 3` when chooin
 
 ```{r variogram-model }
 #-  specify variogram model and parameters
-vr.gls.m <- vgm(psill=200, model="Mat", range=15000)#, nugget=25)
-#vr.gls.m <- vgm(psill=40, model="Exp", range=22000/3, nugget=0)
+vr.gls.m <- vgm(psill=250, model="Mat", range=20000)#, nugget=25)
+#vr.gls.m <- vgm(psill=40, model="Exp", range=20000/3, nugget=0)
 (vr.gls.m.f <- fit.variogram(vr.gls, vr.gls.m))
 ```
 
@@ -489,6 +489,7 @@ str(st_coordinates(cfaq.sf))
 ```
 
 ```{r grid-to-sf}
+#- variables to grid
 grid.sf$X <- st_coordinates(grid.sf)[ , "X"]
 grid.sf$Y <- st_coordinates(grid.sf)[ , "Y"]
 names(grid.sf)
@@ -504,7 +505,7 @@ Variogram from the OLS
 ```{r ols-empirical-variogram-plot}
 #- empirical variogram
 vr <- variogram(waterLevel ~ X + Y + I(X^2) + I(Y^2) + I(X*Y), locations = cfaq.sf, 
-                cutoff = 50000)
+                cutoff = 65000)
 #- plot
 plot(vr, plot.numbers = TRUE, main = "Residuals from 2nd-order OLS trend surface", xlab = "separation (m)", ylab = "semivariance (m^2)")
 ```
@@ -512,7 +513,7 @@ plot(vr, plot.numbers = TRUE, main = "Residuals from 2nd-order OLS trend surface
 ```{r ols-variogram-model}
 #- variogram model 
 #(vr.m.f <- fit.variogram(vr, vgm(35, "Exp", 22000/3, 0)))
-vr.m.f <- fit.variogram(vr, vgm(psill=200, model="Mat", range=15000))#, nugget=25)
+vr.m.f <- fit.variogram(vr, vgm(psill=250, model="Mat", range=20000))#, nugget=25)
 ```
 
 ```{r plot-ols-variogram-model}
