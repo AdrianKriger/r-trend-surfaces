@@ -225,11 +225,16 @@ ggplot(data = drop_units(cfaq)) +
 [ Answer 3. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
+
+The `plot.gam` function offers us an opportunity to discover where predictions are failing.  The 3D view below illustrates this. Change the `scheme` [`0` or `2`] to view the predictions in 2D as contours and a raster.
+
 ```{r plot-gam-3D}
 #- gam as 3D surface
 plot.gam(model.gam, rug = FALSE, se = FALSE, select=1,
          scheme=1, theta=110+130, phi=30)
 ```
+
+We can also illustrate the $\pm$ 1 standard error of fit
 
 ```{r plot-gam-3D-std-error }
 #-3D with 1 standard error of fit
@@ -246,10 +251,16 @@ vis.gam(model.gam, plot.type="persp", color="terrain",
 
 <div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **Question 4.** Does there appear to be any local spatial correlation of the residuals?
+- **Question 4.** How could we ensure a prediction that covers the entire area, with no gaps?
 
 <p class="comment">
 [ Answer 4. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+</p>
+
+- **Question 5.** Does there appear to be any local spatial correlation of the residuals?
+
+<p class="comment">
+[ Answer 5. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
 ```{r predict-gam-summary }
@@ -292,10 +303,10 @@ points(st_coordinates(cfaq.sf)[,2] ~ st_coordinates(cfaq.sf)[,1],
 
 <div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **Question 5.** How well does the GAM trend surface fit the points? Are there obvious problems?
+- **Question 6.** How well does the GAM trend surface fit the points? Are there obvious problems?
 
 <p class="comment">
-[ Answer 5. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+[ Answer 6. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
 ```{r plot-gam-uncertainty }
@@ -326,10 +337,10 @@ Here the positive differences are where the GAM predicts higher values than the 
 
 <div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **Question 6.** Where are the largest differences between the GAM and 2nd order OLS trend surface predictions? Explain why, considering how the two surfaces are computed.
+- **Question 7.** Where are the largest differences between the GAM and 2nd order OLS trend surface predictions? Explain why, considering how the two surfaces are computed.
 
 <p class="comment">
-[ Answer 6. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+[ Answer 7. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
 ## 2. Thin-plate spline interpolation
@@ -459,9 +470,9 @@ print(p2, split = c(2,1,2,1), more = F)
 
 <div class="alert alert-warning"> <strong>QUESTION!</strong> </div>
 
-- **Question 7.** What are the estimated sill, range, and nugget of this variogram?
+- **Question 8.** What are the estimated sill, range, and nugget of this variogram?
 
 <p class="comment">
-[ Answer 7. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
+[ Answer 8. click in this cell and type your answer here. your answer must be between the outer [] brackets ]
 </p>
 
