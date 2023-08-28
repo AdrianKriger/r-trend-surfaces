@@ -2,9 +2,9 @@
 ##-- arkriger: August 2023
 title: "Trend Surface Analysis with R (part III)"
 output:
+  html_notebook: default
   html_document:
     df_print: paged
-  html_notebook: default
 ---
 
 <style> 
@@ -61,12 +61,12 @@ We've already covered creating a 500m grid and 2nd-order prediction and interpol
 
 ```{r read-dataset }
 #-- read
-file = 'cptFlatsAquifer_watertable.txt'
+file = 'cptFlatsAquifer_watertable-Aug2023.txt'
 ```
 
 ```{r import-grid-2nd-ols }
 #-- import
-cfaq <- read.csv(file, header = 1, sep = ',', dec = '.') #sep = '\t',
+cfaq <- read.csv2(file, header = 1, sep = ';', dec = ',')
 #- set crs
 cfaq.sf <- st_as_sf(cfaq, coords=c("long", "lat"), crs = 4326) #wgs84
 #- transform to local crs
@@ -164,6 +164,7 @@ summary(resid.gam)
 ```{r residuals-2nd-ols-summary}
 summary(residuals(model.ts2))
 ```
+
 ```{r hist-gam-2nd-ols-residuals }
 #regular histogram
 par(mfrow=c(1,2))
@@ -438,8 +439,8 @@ cfaq.sf$res.ts2 <- residuals(model.ts2)
 ```
 
 ```{r plot-variogram-fit}
-vr.c <- variogram(res.ts2 ~ 1, loc = cfaq.sf, cutoff = 50000, cloud = T)
-vr <- variogram(res.ts2 ~ 1, loc = cfaq.sf, cutoff = 50000)
+vr.c <- variogram(res.ts2 ~ 1, loc = cfaq.sf, cutoff = 80000, cloud = T)
+vr <- variogram(res.ts2 ~ 1, loc = cfaq.sf, cutoff = 80000)
 p1 <- plot(vr.c, col = "blue", pch = 20, cex = 0.5,
            xlab = "separation [m]", ylab = "semivariance [m^2]")
 p2 <- plot(vr, plot.numbers = T, col = "blue", pch = 20, cex = 1.5,
