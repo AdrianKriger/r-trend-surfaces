@@ -2,9 +2,9 @@
 ##-- arkriger: August 2023
 title: "Trend Surface Analysis with R (part II)"
 output:
+  html_notebook: default
   html_document:
     df_print: paged
-  html_notebook: default
 ---
 
 <style> 
@@ -61,11 +61,12 @@ library(terra) # gridded data structures ("rasters")
 
 ```{r read-dataset }
 #-- read
-file = 'cptFlatsAquifer_watertable.txt'
+file = 'cptFlatsAquifer_watertable-Aug2023.txt'
 ```
+
 ```{r import }
 #-- import
-cfaq <- read.csv(file, header = 1, sep = ',', dec = '.')
+cfaq <- read.csv2(file, header = 1, sep = ';', dec = ',')
 #- set as a spatial feature with xy coords an existing projection
 cfaq.sf <- st_as_sf(cfaq, coords=c("long", "lat"), crs = 4326) #wgs84
 #- transform to local crs
